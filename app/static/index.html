@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Offline Translation Studio</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0"
+        rel="stylesheet" />
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#4f46e5",
+                        secondary: "#7c3aed",
+                        "background-light": "#FAFAFA",
+                        "background-dark": "#0f172a",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e293b",
+                    },
+                    fontFamily: {
+                        display: ["Plus Jakarta Sans", "sans-serif"],
+                        sans: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.5rem",
+                        'xl': '1rem',
+                        '2xl': '1.5rem',
+                        '3xl': '2rem',
+                    },
+                },
+            },
+        };
+    </script>
+    <style>
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background-color: rgba(156, 163, 175, 0.3);
+            border-radius: 20px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .bg-dot-pattern {
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.3;
+        }
+
+        .dark .bg-dot-pattern {
+            background-image: radial-gradient(#334155 1px, transparent 1px);
+            opacity: 0.15;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            background: #1e293b;
+            color: white;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-hidden selection:bg-primary selection:text-white">
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute inset-0 bg-dot-pattern"></div>
+        <div
+            class="absolute -top-[10%] -left-[5%] w-[45%] h-[45%] bg-sky-200/40 dark:bg-blue-600/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-normal">
+        </div>
+        <div
+            class="absolute top-[20%] -right-[5%] w-[50%] h-[50%] bg-purple-200/40 dark:bg-violet-600/10 rounded-full blur-[100px] mix-blend-multiply dark:mix-blend-normal">
+        </div>
+        <div
+            class="absolute bottom-[10%] left-[20%] w-[35%] h-[35%] bg-teal-100/50 dark:bg-emerald-500/10 rounded-full blur-[80px] mix-blend-multiply dark:mix-blend-normal">
+        </div>
+    </div>
+    <div class="relative z-10 flex flex-col min-h-screen">
+        <header
+            class="w-full px-6 py-4 flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 bg-white/70 dark:bg-slate-900/60 backdrop-blur-md sticky top-0 z-50 transition-colors">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white shadow-lg shadow-primary/20">
+                    <span class="material-symbols-rounded text-xl">translate</span>
+                </div>
+                <div class="flex flex-col">
+                    <h1 class="font-bold text-lg leading-tight tracking-tight text-slate-900 dark:text-white">
+                        Translation Studio</h1>
+                    <span
+                        class="text-[11px] uppercase tracking-wide font-semibold text-slate-400 dark:text-slate-500">Offline
+                        Enterprise</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="statusIndicator"
+                    class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50/80 dark:bg-slate-500/10 border border-slate-100 dark:border-slate-500/20 shadow-sm">
+                    <div class="w-2 h-2 rounded-full bg-slate-400"></div>
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Checking...</span>
+                </div>
+                <div
+                    class="w-9 h-9 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 shadow-md ring-2 ring-white dark:ring-slate-800">
+                </div>
+            </div>
+        </header>
+        <main class="flex-grow flex flex-col items-center justify-center p-4 md:p-8 max-w-7xl mx-auto w-full">
+            <div class="text-center mb-10 mt-6">
+                <h2 class="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 tracking-tight">
+                    Offline Translation Studio
+                </h2>
+                <p class="text-slate-500 dark:text-slate-400 text-lg max-w-2xl mx-auto font-medium leading-relaxed">
+                    Secure, local neural translation for sensitive enterprise documents.
+                </p>
+            </div>
+            <div class="flex items-center justify-center gap-4 mb-10">
+                <div
+                    class="glass-panel p-1.5 rounded-full border border-white/60 dark:border-slate-700 shadow-sm flex items-center relative">
+                    <button id="sourceLangBtn"
+                        class="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 bg-slate-900 dark:bg-primary text-white shadow-md">
+                        English (US)
+                    </button>
+                    <button id="swapBtn"
+                        class="w-10 h-10 flex items-center justify-center rounded-full text-slate-400 dark:text-slate-400 hover:text-primary dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all mx-1">
+                        <span class="material-symbols-rounded text-xl">swap_horiz</span>
+                    </button>
+                    <button id="targetLangBtn"
+                        class="px-6 py-2.5 rounded-full text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300">
+                        Hindi (India)
+                    </button>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mb-6">
+                <div
+                    class="glass-panel rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg shadow-slate-200/20 dark:shadow-none overflow-hidden flex flex-col h-[380px] group transition-all duration-300 hover:shadow-xl hover:border-primary/20 dark:hover:border-primary/40 focus-within:ring-2 ring-primary/20">
+                    <div
+                        class="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white/40 dark:bg-slate-800/30">
+                        <span
+                            class="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">Input
+                            Source</span>
+                        <div class="flex items-center gap-2">
+                            <button id="pasteBtn"
+                                class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors"
+                                title="Paste">
+                                <span class="material-symbols-rounded text-lg">content_paste</span>
+                            </button>
+                            <span id="inputCounter"
+                                class="ml-2 text-[10px] font-mono font-medium text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-2 py-1 rounded-md">0
+                                / 50000</span>
+                        </div>
+                    </div>
+                    <div class="flex-grow relative bg-white/20 dark:bg-transparent">
+                        <textarea id="inputText"
+                            class="w-full h-full bg-transparent border-0 p-6 text-xl text-slate-700 dark:text-slate-100 placeholder-slate-300 dark:placeholder-slate-600 focus:ring-0 resize-none font-medium leading-relaxed"
+                            placeholder="Enter text to translate..."></textarea>
+                    </div>
+                </div>
+                <div
+                    class="glass-panel rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg shadow-indigo-100/40 dark:shadow-none overflow-hidden flex flex-col h-[380px] transition-all duration-300 hover:border-indigo-400/30 dark:hover:border-indigo-500/40 relative">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-900/10 dark:to-purple-900/10 pointer-events-none">
+                    </div>
+                    <div
+                        class="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white/40 dark:bg-slate-800/30 relative z-10">
+                        <span
+                            class="text-xs font-bold tracking-wider text-indigo-500 dark:text-indigo-400 uppercase">Translation
+                            Result</span>
+                        <div class="flex items-center gap-2">
+                            <button id="copyBtn"
+                                class="p-1.5 rounded hover:bg-white/50 dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 transition-colors"
+                                title="Copy">
+                                <span class="material-symbols-rounded text-lg">content_copy</span>
+                            </button>
+                            <span id="outputCounter"
+                                class="ml-2 text-[10px] font-mono font-medium text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-1 rounded-md">0
+                                words</span>
+                        </div>
+                    </div>
+                    <div class="flex-grow relative z-10 p-6 bg-white/30 dark:bg-transparent overflow-auto">
+                        <p id="outputText"
+                            class="text-xl text-slate-800 dark:text-slate-100 font-medium leading-relaxed min-h-full">
+                        </p>
+                    </div>
+                    <div
+                        class="absolute bottom-6 right-6 text-indigo-200/40 dark:text-slate-700/30 pointer-events-none">
+                        <span class="material-symbols-rounded text-7xl">translate</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div id="progressContainer"
+                class="w-full mb-6 glass-panel rounded-xl p-4 border border-white/60 dark:border-slate-700/60"
+                style="display: none;">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold text-slate-600 dark:text-slate-300">Translation Progress</span>
+                    <span id="progressText" class="text-sm font-mono text-slate-500 dark:text-slate-400">0%</span>
+                </div>
+                <div class="w-full h-1 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Metrics Display -->
+            <div id="metricsDisplay"
+                class="w-full mb-6 glass-panel rounded-xl p-4 border border-white/60 dark:border-slate-700/60"
+                style="display: none;">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary dark:text-indigo-400" id="metricTime">--</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Inference Time
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-secondary dark:text-violet-400" id="metricTokens">--</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tokens</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400" id="metricSpeed">--</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Tokens/sec</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-sky-600 dark:text-sky-400" id="metricAdapter">--</div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">Adapter Switch
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-4 w-full">
+                <button id="clearBtn"
+                    class="group relative px-6 py-3 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300">
+                    <div class="flex items-center gap-2">
+                        <span
+                            class="material-symbols-rounded text-xl group-hover:-rotate-12 transition-transform">backspace</span>
+                        <span class="font-semibold">Clear</span>
+                    </div>
+                </button>
+                <button id="translateBtn"
+                    class="group relative px-8 py-3 rounded-xl overflow-hidden bg-slate-900 dark:bg-primary text-white shadow-xl shadow-slate-200 dark:shadow-indigo-900/40 hover:-translate-y-0.5 transition-all duration-300">
+                    <div
+                        class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-rounded text-xl">g_translate</span>
+                        <span class="font-bold tracking-wide">Translate Now</span>
+                    </div>
+                </button>
+                <button id="copyTextBtn"
+                    class="group relative px-6 py-3 rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-300 shadow-sm hover:shadow-md hover:border-slate-300 dark:hover:border-slate-500 transition-all duration-300">
+                    <div class="flex items-center gap-2">
+                        <span class="material-symbols-rounded text-xl">content_copy</span>
+                        <span class="font-semibold">Copy Text</span>
+                    </div>
+                </button>
+            </div>
+        </main>
+        <footer
+            class="w-full py-6 text-center border-t border-slate-200/60 dark:border-white/5 bg-white/60 dark:bg-slate-900/50 backdrop-blur-sm mt-auto">
+            <div class="flex flex-col items-center justify-center gap-2">
+                <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    All processing happens locally on your device.
+                </p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // Configuration
+        const API_BASE_URL = window.location.origin;
+        const LONG_TEXT_THRESHOLD = 1000;
+
+        // State
+        let sourceLang = 'en';
+        let targetLang = 'hi';
+
+        // DOM Elements
+        const inputText = document.getElementById('inputText');
+        const outputText = document.getElementById('outputText');
+        const inputCounter = document.getElementById('inputCounter');
+        const outputCounter = document.getElementById('outputCounter');
+        const sourceLangBtn = document.getElementById('sourceLangBtn');
+        const targetLangBtn = document.getElementById('targetLangBtn');
+        const swapBtn = document.getElementById('swapBtn');
+        const translateBtn = document.getElementById('translateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyTextBtn = document.getElementById('copyTextBtn');
+        const pasteBtn = document.getElementById('pasteBtn');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const metricsDisplay = document.getElementById('metricsDisplay');
+        const toast = document.getElementById('toast');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkHealth();
+            updateCounters();
+            setupEventListeners();
+        });
+
+        // Event Listeners
+        function setupEventListeners() {
+            inputText.addEventListener('input', updateCounters);
+            swapBtn.addEventListener('click', swapLanguages);
+            translateBtn.addEventListener('click', handleTranslate);
+            clearBtn.addEventListener('click', clearAll);
+            copyBtn.addEventListener('click', copyOutput);
+            copyTextBtn.addEventListener('click', copyOutput);
+            pasteBtn.addEventListener('click', pasteText);
+        }
+
+        // Health Check
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/health`);
+                const data = await response.json();
+
+                const dot = statusIndicator.querySelector('.w-2');
+                const text = statusIndicator.querySelector('.text-xs');
+
+                if (data.status === 'ready') {
+                    statusIndicator.classList.remove('bg-slate-50/80', 'dark:bg-slate-500/10', 'border-slate-100', 'dark:border-slate-500/20');
+                    statusIndicator.classList.add('bg-emerald-50/80', 'dark:bg-emerald-500/10', 'border-emerald-100', 'dark:border-emerald-500/20');
+                    dot.classList.remove('bg-slate-400');
+                    dot.classList.add('bg-emerald-500', 'animate-pulse');
+                    text.classList.remove('text-slate-500', 'dark:text-slate-400');
+                    text.classList.add('text-emerald-700', 'dark:text-emerald-400');
+                    text.textContent = 'System Ready';
+                }
+            } catch (error) {
+                console.error('Health check failed:', error);
+            }
+        }
+
+        // Update Counters
+        function updateCounters() {
+            const inputValue = inputText.value;
+            const inputChars = inputValue.length;
+            const inputWords = inputValue.trim() ? inputValue.trim().split(/\s+/).length : 0;
+            inputCounter.textContent = `${inputChars} / 50000`;
+
+            const outputValue = outputText.textContent;
+            const outputWords = outputValue.trim() ? outputValue.trim().split(/\s+/).length : 0;
+            outputCounter.textContent = `${outputWords} words`;
+        }
+
+        // Swap Languages
+        function swapLanguages() {
+            [sourceLang, targetLang] = [targetLang, sourceLang];
+
+            const tempText = sourceLangBtn.textContent;
+            sourceLangBtn.textContent = targetLangBtn.textContent;
+            targetLangBtn.textContent = tempText;
+
+            const tempInput = inputText.value;
+            inputText.value = outputText.textContent;
+            outputText.textContent = tempInput;
+
+            updateCounters();
+        }
+
+        // Translate
+        async function handleTranslate() {
+            const text = inputText.value.trim();
+
+            if (!text) {
+                showToast('Please enter some text to translate', 'error');
+                return;
+            }
+
+            const isLongText = text.length > LONG_TEXT_THRESHOLD;
+
+            if (isLongText) {
+                await translateLong(text);
+            } else {
+                await translateShort(text);
+            }
+        }
+
+        // Short Translation
+        async function translateShort(text) {
+            try {
+                translateBtn.disabled = true;
+                translateBtn.querySelector('span:last-child').textContent = 'Translating...';
+                metricsDisplay.style.display = 'none';
+
+                const response = await fetch(`${API_BASE_URL}/translate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        source_lang: sourceLang,
+                        target_lang: targetLang,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Translation failed');
+                }
+
+                const data = await response.json();
+                outputText.textContent = data.translated_text;
+                updateCounters();
+                displayMetrics(data.metrics);
+                showToast('Translation complete!', 'success');
+
+            } catch (error) {
+                console.error('Translation error:', error);
+                showToast(error.message || 'Translation failed', 'error');
+            } finally {
+                translateBtn.disabled = false;
+                translateBtn.querySelector('span:last-child').textContent = 'Translate Now';
+            }
+        }
+
+        // Long Translation
+        async function translateLong(text) {
+            try {
+                translateBtn.disabled = true;
+                translateBtn.querySelector('span:last-child').textContent = 'Translating...';
+                progressContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressText.textContent = '0%';
+                metricsDisplay.style.display = 'none';
+                outputText.textContent = '';
+
+                const response = await fetch(`${API_BASE_URL}/translate/long`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text: text,
+                        source_lang: sourceLang,
+                        target_lang: targetLang,
+                    }),
+                });
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    buffer = lines.pop();
+
+                    for (const line of lines) {
+                        if (line.startsWith('data: ')) {
+                            const data = JSON.parse(line.slice(6));
+
+                            if (data.status === 'translating') {
+                                progressBar.style.width = `${data.progress}%`;
+                                progressText.textContent = `${data.progress}%`;
+
+                                if (data.chunk_result) {
+                                    outputText.textContent += (outputText.textContent ? ' ' : '') + data.chunk_result;
+                                    updateCounters();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                }, 1000);
+
+                showToast('Translation complete!', 'success');
+
+            } catch (error) {
+                console.error('Long translation error:', error);
+                showToast(error.message || 'Translation failed', 'error');
+                progressContainer.style.display = 'none';
+            } finally {
+                translateBtn.disabled = false;
+                translateBtn.querySelector('span:last-child').textContent = 'Translate Now';
+            }
+        }
+
+        // Display Metrics
+        function displayMetrics(metrics) {
+            document.getElementById('metricTime').textContent = `${metrics.inference_time_ms}ms`;
+            document.getElementById('metricTokens').textContent = `${metrics.input_tokens} → ${metrics.output_tokens}`;
+            document.getElementById('metricSpeed').textContent = `${metrics.tokens_per_second.toFixed(1)}`;
+            document.getElementById('metricAdapter').textContent = `${metrics.adapter_switch_time_ms}ms`;
+            metricsDisplay.style.display = 'block';
+        }
+
+        // Clear All
+        function clearAll() {
+            inputText.value = '';
+            outputText.textContent = '';
+            updateCounters();
+            metricsDisplay.style.display = 'none';
+            progressContainer.style.display = 'none';
+            showToast('Cleared!', 'success');
+        }
+
+        // Copy Output
+        async function copyOutput() {
+            const text = outputText.textContent;
+
+            if (!text) {
+                showToast('Nothing to copy', 'error');
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied to clipboard!', 'success');
+            } catch (error) {
+                showToast('Failed to copy', 'error');
+            }
+        }
+
+        // Paste Text
+        async function pasteText() {
+            try {
+                const text = await navigator.clipboard.readText();
+                inputText.value = text;
+                updateCounters();
+                showToast('Pasted!', 'success');
+            } catch (error) {
+                showToast('Failed to paste', 'error');
+            }
+        }
+
+        // Toast Notification
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // Dark mode toggle
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,651 @@
+# **Product Requirements Document (PRD)**
+
+## **Project: Offline Translation Backend — NLLB Base + LoRA Adapters**
+
+---
+
+## 1. Overview
+
+This project aims to build a **local, offline machine translation backend** using a **single NLLB base model with swappable LoRA adapters** for **bidirectional Hindi–English translation**.
+
+The system is designed to be:
+
+* Memory efficient
+* Fast to switch translation direction
+* Modular and production-quality
+* Fully local (no internet or cloud dependency)
+
+The backend will be exposed via **FastAPI**.
+The **UI is provided separately** and is out of scope for this PRD.
+
+---
+
+## 2. Objectives
+
+* Load **one NLLB base model once** into memory
+* Support:
+
+  * English → Hindi via LoRA adapter
+  * Hindi → English via LoRA adapter
+* Enable **hot-swapping adapters** without reloading the base model
+* Achieve **10–50 ms adapter switch time**
+* Expose clean APIs for translation
+* Log performance and system behavior comprehensively
+* Maintain clean, modular, extensible code
+
+---
+
+## 3. Non-Goals
+
+* UI development
+* Cloud deployment
+* Authentication or user management
+* Multilingual expansion beyond Hindi–English (v1)
+* Long-term metrics storage or monitoring dashboards
+
+---
+
+## 4. Target Users
+
+* Internal developers
+* Demo stakeholders
+* Offline / edge-device translation use cases
+
+---
+
+## 5. High-Level Architecture
+
+```
+[ External UI ]
+       |
+   FastAPI
+       |
+Translation Service
+       |
+NLLB Base Model (loaded once)
+       |
+LoRA Adapter Manager
+   ├── EN→HI Adapter
+   └── HI→EN Adapter
+```
+
+---
+
+## 6. Core Components
+
+### 6.1 Model Loader
+
+* Loads NLLB base model **once at startup** (not on first request)
+* Handles device placement (CPU/GPU)
+* No adapter logic inside this module
+* **Startup Behavior:**
+  * Load base model before accepting API requests
+  * Preload both adapters (en_hi and hi_en)
+  * Run a **warmup translation** (dummy request) to ensure everything works
+  * Only mark service as "ready" after successful warmup
+
+---
+
+### 6.2 Adapter Manager
+
+Responsibilities:
+
+* Load LoRA adapters using **PEFT library** (`peft.PeftModel`)
+* Switch adapters based on translation direction using `set_adapter()`
+* Ensure thread-safe adapter swapping using `threading.Lock()`
+* Track current active adapter
+* Measure adapter switch time
+
+**Implementation Details:**
+
+* Use Hugging Face `peft` library for adapter management
+* Adapter paths specified in configuration
+* **Caching Strategy:** Preload both adapters at startup (en_hi and hi_en)
+  * Memory overhead: ~60 MB total (negligible)
+  * Benefit: Zero swap latency, instant direction switching
+* Handle adapter loading errors gracefully with proper error messages
+* Thread-safe switching: Use lock around `set_adapter()` calls
+* **Concurrency Behavior:** Queue requests during adapter swap (do not reject)
+
+---
+
+### 6.3 Translation Engine
+
+Responsibilities:
+
+* Tokenization with NLLB language-specific codes
+* Inference
+* Decoding
+* Parameter handling (max tokens, temperature, beams)
+* Metric calculation
+* Clean output normalization
+* Input validation
+
+**Implementation Details:**
+
+* Use `AutoTokenizer` with proper `src_lang` and `tgt_lang` codes
+* **Language Code Mapping:**
+  * `"en"` → `"eng_Latn"` (NLLB code for English)
+  * `"hi"` → `"hin_Deva"` (NLLB code for Hindi in Devanagari script)
+* **Input Validation:**
+  * Max input length: 5000 characters or 512 tokens (whichever is hit first)
+  * Supported language codes: `["en", "hi"]` only
+  * Reject empty or whitespace-only input with 400 error
+  * Handle unsupported characters gracefully
+* Handle tokenizer errors (empty input, encoding failures)
+
+---
+
+### 6.4 Metrics Collector
+
+Responsibilities:
+
+* Measure inference latency
+* Count input and output tokens
+* Compute tokens-per-second (TPS)
+* Track adapter switch latency
+* Return metrics to API and logger
+
+---
+
+### 6.5 Text Chunker
+
+Responsibilities:
+
+* Split long documents into translation-friendly chunks
+* Preserve sentence and paragraph boundaries
+* Handle edge cases (very long sentences, special characters)
+* Calculate optimal chunk sizes based on token limits
+
+**Implementation Details:**
+
+* **Chunking Algorithm:**
+  * Target chunk size: ~500 tokens
+  * Split on sentence boundaries using NLP or regex
+  * If sentence > 500 tokens, split on clause boundaries (commas, semicolons)
+  * Preserve paragraph breaks for better context
+  
+* **Smart Boundary Detection:**
+  * Use `nltk.sent_tokenize()` or similar for sentence splitting
+  * Handle abbreviations (Dr., Mr., etc.) correctly
+  * Detect paragraph breaks (`\n\n`)
+  
+* **Overlap Strategy (Optional):**
+  * Add 1-2 sentence overlap between chunks for context continuity
+  * Helps maintain coherence in translation
+
+---
+
+### 6.6 Logging System
+
+Responsibilities:
+
+* Structured logging (JSON)
+* Capture translations, metrics, and errors
+* Console + file logging
+
+---
+
+## 7. API Requirements
+
+### 7.1 Translate Endpoint
+
+**POST** `/translate`
+
+**Request**
+
+```json
+{
+  "text": "Hello, how are you?",
+  "source_lang": "en",
+  "target_lang": "hi",
+  "decoding_params": {
+    "max_length": 512,
+    "num_beams": 5,
+    "temperature": 1.0,
+    "early_stopping": true
+  }
+}
+```
+
+**Notes:**
+* `decoding_params` is **optional**; defaults will be used if not provided
+* `source_lang` and `target_lang` must be `"en"` or `"hi"`
+* `text` must be non-empty and ≤ 5000 characters
+
+**Response**
+
+```json
+{
+  "translated_text": "नमस्ते, आप कैसे हैं?",
+  "source_lang": "en",
+  "target_lang": "hi",
+  "metrics": {
+    "inference_time_ms": 42,
+    "adapter_switch_time_ms": 12,
+    "input_tokens": 18,
+    "output_tokens": 21,
+    "tokens_per_second": 500
+  }
+}
+```
+
+**Error Responses:**
+
+* **400 Bad Request** – Invalid input (empty text, unsupported language, invalid params)
+* **500 Internal Server Error** – Adapter load failure, model error
+* **503 Service Unavailable** – Out of memory, resource exhaustion
+* **504 Gateway Timeout** – Inference timeout
+```
+
+---
+
+### 7.2 Health Endpoint
+
+**GET** `/health`
+
+**Response:**
+
+```json
+{
+  "status": "ready",
+  "model_loaded": true,
+  "active_adapter": "en_hi",
+  "device": "cuda:0",
+  "adapters_available": ["en_hi", "hi_en"],
+  "warmup_completed": true
+}
+```
+
+**Status Values:**
+* `"ready"` – Model loaded, adapters ready, warmup complete
+* `"loading"` – Model/adapters still loading
+* `"error"` – Startup failed
+
+---
+
+### 7.3 Long Document Translation Endpoint
+
+**POST** `/translate/long`
+
+For translating large documents (entire pages, articles, etc.) with progress tracking.
+
+**Request**
+
+```json
+{
+  "text": "...very long text...",
+  "source_lang": "en",
+  "target_lang": "hi",
+  "decoding_params": {
+    "max_length": 512,
+    "num_beams": 5
+  }
+}
+```
+
+**Response (Streaming via Server-Sent Events)**
+
+The endpoint returns a stream of progress updates:
+
+```
+event: progress
+data: {"status": "chunking", "progress": 0, "message": "Splitting text into chunks..."}
+
+event: progress
+data: {"status": "translating", "progress": 25, "message": "Translating chunk 1/4...", "chunk_result": "..."}
+
+event: progress
+data: {"status": "translating", "progress": 50, "message": "Translating chunk 2/4...", "chunk_result": "..."}
+
+event: progress
+data: {"status": "translating", "progress": 75, "message": "Translating chunk 3/4...", "chunk_result": "..."}
+
+event: progress
+data: {"status": "translating", "progress": 100, "message": "Translating chunk 4/4...", "chunk_result": "..."}
+
+event: complete
+data: {"translated_text": "...full translation...", "metrics": {...}}
+```
+
+**Implementation Details:**
+
+* **Chunking Strategy:**
+  * Split text into chunks of ~500 tokens each
+  * Use sentence boundaries (don't split mid-sentence)
+  * Preserve paragraph structure where possible
+  * Handle edge cases (very long sentences, special characters)
+
+* **Progress Tracking:**
+  * Use Server-Sent Events (SSE) for real-time updates
+  * Send progress percentage after each chunk
+  * Include partial results so UI can show incremental translation
+  * Final event contains complete translation + aggregated metrics
+
+* **Timeout Configuration:**
+  * Default timeout: 10 minutes (600 seconds)
+  * Configurable per request
+  * Graceful timeout handling with partial results
+
+* **Error Handling:**
+  * If one chunk fails, log error and continue with next chunk
+  * Return partial translation with error details
+  * Client can retry failed chunks
+
+**Notes:**
+* Suitable for documents up to 50,000 characters
+* User sees progress in real-time ("Translating... 25% complete")
+* Better UX than waiting 5 minutes with no feedback
+* Can be used for batch translation workflows
+
+---
+
+### 7.4 Metrics Endpoint
+
+**GET** `/metrics`
+
+**Response:**
+
+```json
+{
+  "total_requests": 142,
+  "avg_inference_time_ms": 38,
+  "avg_adapter_switch_time_ms": 11,
+  "requests_by_direction": {
+    "en_hi": 78,
+    "hi_en": 64
+  },
+  "uptime_seconds": 3600
+}
+```
+
+**Notes:**
+* Useful for debugging and monitoring during demos
+* Resets on service restart
+* Optional for v1 (can be added later if needed)
+
+---
+
+## 8. Runtime Metrics (MANDATORY)
+
+For **every request**, the system must compute and record:
+
+1. Inference time (ms)
+2. Adapter switch time (ms)
+3. Input token count
+4. Output token count
+5. Tokens per second (TPS)
+6. Active adapter
+7. Decoding parameters used
+
+---
+
+## 9. Logging Requirements (MANDATORY)
+
+### 9.1 What Must Be Logged
+
+**For every request:**
+
+* Source language
+* Target language
+* Input text (configurable masking)
+* Output text
+* Inference time
+* Adapter switch time
+* Input tokens
+* Output tokens
+* Tokens per second
+
+**Errors & Warnings:**
+
+* Model load failures
+* Adapter load/switch failures
+* Invalid inputs
+* Inference crashes
+* Timeouts or resource errors
+
+**Error Handling Strategies:**
+
+* **Adapter load failure** → Return 500 with clear error message, log full traceback
+* **Invalid input** → Return 400 with validation error details
+* **Inference timeout** → Return 504 with timeout message
+* **Out of Memory (OOM)** → Return 503 (service unavailable), log memory stats
+* **Tokenizer errors** → Return 400 with specific encoding error message
+
+---
+
+### 9.2 Logging Standards
+
+* Structured JSON logs
+* Proper log levels:
+
+  * INFO
+  * WARNING
+  * ERROR
+* No silent failures
+* No swallowed exceptions
+
+---
+
+## 10. Code Structure & Modularity (NON-NEGOTIABLE)
+
+### 10.1 Proposed Structure
+
+```
+app/
+├── main.py
+├── api/
+│   └── routes.py
+├── core/
+│   ├── model_loader.py
+│   ├── adapter_manager.py
+│   ├── translator.py
+│   ├── chunker.py
+│   ├── metrics.py
+│   └── config.py
+├── logging/
+│   └── logger.py
+├── schemas/
+│   └── api_models.py
+├── utils/
+│   └── timing.py
+└── tests/
+```
+
+---
+
+### 10.2 Engineering Rules
+
+* Clear separation of concerns
+* No monolithic files
+* No hard-coded parameters
+* No copy-paste logic
+* Config-driven behavior
+* Readable, descriptive naming
+
+---
+
+### 10.3 Forbidden Practices
+
+* Spaghetti code
+* Global mutable state
+* Silent try/except
+* “Temporary” hacks left in production paths
+
+---
+
+## 11. Performance Requirements
+
+* Base model loaded once
+* Adapter swap latency ≤ 50 ms
+* Translation latency suitable for live demo
+* Memory usage:
+
+  * Base model ~2.4 GB
+  * Each adapter ~30 MB
+
+**Concurrency Behavior:**
+
+* Requests during adapter swap are **queued** (not rejected)
+* Thread-safe adapter switching ensures no race conditions
+* Multiple concurrent requests to the same adapter are handled in parallel
+
+---
+
+## 12. Configuration
+
+All configuration should be centralized and easily modifiable.
+
+### 12.1 Model & Adapter Configuration
+
+```python
+# Model paths
+BASE_MODEL_PATH = "facebook/nllb-200-distilled-600M"  # or local path
+ADAPTER_PATHS = {
+    "en_hi": "/path/to/lora_adapters/en_hi",
+    "hi_en": "/path/to/lora_adapters/hi_en"
+}
+
+# Device configuration
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+```
+
+### 12.2 Decoding Parameters
+
+```python
+DEFAULT_DECODING_PARAMS = {
+    "max_length": 512,
+    "num_beams": 5,
+    "temperature": 1.0,  # None for greedy decoding
+    "early_stopping": True,
+    "no_repeat_ngram_size": 3
+}
+
+# Parameter constraints for validation
+PARAM_CONSTRAINTS = {
+    "max_length": (1, 1024),
+    "num_beams": (1, 10),
+    "temperature": (0.1, 2.0)
+}
+```
+
+### 12.3 Language Code Mapping
+
+```python
+# API language codes → NLLB tokenizer codes
+LANG_CODE_MAP = {
+    "en": "eng_Latn",
+    "hi": "hin_Deva"
+}
+
+SUPPORTED_LANGUAGES = ["en", "hi"]
+```
+
+### 12.4 Input Validation
+
+```python
+MAX_INPUT_LENGTH_CHARS = 5000
+MAX_INPUT_LENGTH_TOKENS = 512
+```
+
+### 12.5 Logging Configuration
+
+```python
+LOG_LEVEL = "INFO"  # INFO, WARNING, ERROR
+LOG_FORMAT = "json"  # json or text
+LOG_FILE_PATH = "logs/translation.log"
+MASK_INPUT_TEXT = False  # Set to True for privacy
+```
+
+### 12.6 Chunking Configuration (for Long Documents)
+
+```python
+# Chunking parameters
+CHUNK_SIZE_TOKENS = 500
+CHUNK_OVERLAP_SENTENCES = 1  # Number of sentences to overlap between chunks
+MAX_DOCUMENT_LENGTH_CHARS = 50000
+
+# Timeout for long translations
+LONG_TRANSLATION_TIMEOUT_SECONDS = 600  # 10 minutes
+```
+
+* All decoding parameters configurable
+* Metrics and logging verbosity configurable
+* No magic constants inside code
+
+---
+
+## 13. Testing Requirements
+
+* Unit tests:
+
+  * Adapter switching
+  * Direction routing
+  * Text chunking (boundary detection, overlap)
+  * Metrics calculation
+* Integration tests:
+
+  * Long document translation flow
+  * SSE streaming functionality
+  * Error handling across chunks
+* Manual tests:
+
+  * Demo flows
+  * Error handling
+  * Performance sanity checks
+  * Long document translation (full page copy-paste)
+
+---
+
+## 14. Success Criteria
+
+* Runs fully offline
+* One base model in memory
+* Fast EN↔HI switching
+* Metrics visible and logged
+* API stable for UI integration
+* Demo-ready without hacks
+* **Long document translation works with progress tracking**
+* **Users can paste entire pages and get translations (up to 50k chars)**
+
+---
+
+---
+
+## 16. Dependencies
+
+The following Python libraries are required:
+
+```
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+transformers>=4.35.0
+peft>=0.7.0
+torch>=2.0.0
+sentencepiece>=0.1.99
+protobuf>=3.20.0
+accelerate>=0.24.0
+pydantic>=2.0.0
+python-multipart
+nltk>=3.8.0
+sse-starlette>=1.6.0
+```
+
+**Notes:**
+* `sentencepiece` is required for NLLB tokenizer
+* `peft` is critical for LoRA adapter management
+* `accelerate` helps with model loading and device placement
+* `python-multipart` may be needed for future file upload support
+* `nltk` is used for intelligent sentence splitting in chunking
+* `sse-starlette` enables Server-Sent Events for progress streaming
+
+---
+
+## 17. Future Scope (Out of Scope for v1)
+
+* Additional languages
+* Quantization
+* Batch translation
+* Streaming responses
+* Cloud deployment
+* Metrics dashboards
