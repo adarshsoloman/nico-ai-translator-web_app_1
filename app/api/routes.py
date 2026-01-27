@@ -189,7 +189,8 @@ async def translate_long(request: Request):
                     # Small delay to allow client to process
                     await asyncio.sleep(0.1)
                 
-                # Step 3: Combine results
+                # Step 3: Combine results while preserving paragraph structure
+                # Join chunks with space, but the chunks already contain paragraph breaks
                 full_translation = " ".join(translated_chunks)
                 
                 # Send completion

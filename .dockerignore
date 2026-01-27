@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Logs (will be created in container)
+logs/*.log
+
+# Environment files (will be mounted separately)
+.env
+
+# Documentation
+README.md
+TECHNICAL_OVERVIEW.md
+PRD.txt
+
+# Assets
+assets/
+
+# OS
+.DS_Store
+Thumbs.db

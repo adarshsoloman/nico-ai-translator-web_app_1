@@ -21,20 +21,32 @@ class TextChunker:
         
     def split_into_sentences(self, text: str) -> List[str]:
         """
-        Split text into sentences using simple regex
+        Split text into sentences while preserving paragraph breaks
         
         Args:
             text: Input text
             
         Returns:
-            List of sentences
+            List of sentences with paragraph markers
         """
-        # Simple sentence splitting on period, exclamation, question mark
-        # followed by space and capital letter or end of string
-        sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])|(?<=[.!?])$', text)
+        # First, split by paragraphs (double newlines or more)
+        paragraphs = re.split(r'\n\s*\n', text)
         
-        # Filter out empty sentences
-        sentences = [s.strip() for s in sentences if s.strip()]
+        sentences = []
+        for i, paragraph in enumerate(paragraphs):
+            if not paragraph.strip():
+                continue
+                
+            # Split paragraph into sentences
+            para_sentences = re.split(r'(?<=[.!?])\s+(?=[A-Z])|(?<=[.!?])$', paragraph)
+            para_sentences = [s.strip() for s in para_sentences if s and s.strip()]
+            
+            # Add sentences from this paragraph
+            sentences.extend(para_sentences)
+            
+            # Add paragraph break marker (except after last paragraph)
+            if i < len(paragraphs) - 1 and para_sentences:
+                sentences.append("__PARAGRAPH_BREAK__")
         
         return sentences
     
@@ -50,6 +62,35 @@ class TextChunker:
         """
         tokens = self.tokenizer(text, return_tensors="pt", truncation=False)
         return tokens['input_ids'].shape[1]
+    
+    def _join_sentences(self, sentences: List[str]) -> str:
+        """
+        Join sentences while preserving paragraph breaks
+        
+        Args:
+            sentences: List of sentences (may include __PARAGRAPH_BREAK__ markers)
+            
+        Returns:
+            Joined text with proper paragraph breaks
+        """
+        result = []
+        for sentence in sentences:
+            if sentence == "__PARAGRAPH_BREAK__":
+                result.append("\n\n")
+            else:
+                result.append(sentence)
+        
+        # Join with spaces, but paragraph breaks are already added
+        text = ""
+        for i, part in enumerate(result):
+            if part == "\n\n":
+                text += part
+            elif i > 0 and result[i-1] != "\n\n":
+                text += " " + part
+            else:
+                text += part
+        
+        return text
     
     def chunk_text(self, text: str) -> List[dict]:
         """
@@ -80,7 +121,7 @@ class TextChunker:
                 if sentence_tokens > self.chunk_size_tokens:
                     # If we have accumulated sentences, save them first
                     if current_chunk:
-                        chunk_text = " ".join(current_chunk)
+                        chunk_text = self._join_sentences(current_chunk)
                         chunks.append({
                             "text": chunk_text,
                             "chunk_id": chunk_id,
@@ -127,7 +168,7 @@ class TextChunker:
                 # Check if adding this sentence would exceed chunk size
                 if current_tokens + sentence_tokens > self.chunk_size_tokens and current_chunk:
                     # Save current chunk
-                    chunk_text = " ".join(current_chunk)
+                    chunk_text = self._join_sentences(current_chunk)
                     chunks.append({
                         "text": chunk_text,
                         "chunk_id": chunk_id,
@@ -149,7 +190,7 @@ class TextChunker:
             
             # Save final chunk
             if current_chunk:
-                chunk_text = " ".join(current_chunk)
+                chunk_text = self._join_sentences(current_chunk)
                 chunks.append({
                     "text": chunk_text,
                     "chunk_id": chunk_id,

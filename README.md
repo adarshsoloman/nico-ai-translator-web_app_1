@@ -15,7 +15,36 @@ A local, offline translation web application using NLLB-200 base model with swap
 
 ---
 
-## Prerequisites
+## 🐳 Docker Deployment (Recommended)
+
+**For quick deployment with Docker:**
+
+```bash
+# 1. Create .env file with your HuggingFace token
+cp .env.example .env
+
+# 2. Start with Docker Compose
+docker-compose up -d
+
+# 3. Access the app
+# http://localhost:8000
+```
+
+📚 **See [docs/QUICK_START.md](docs/QUICK_START.md) for detailed Docker setup instructions**
+
+---
+
+## 📚 Documentation
+
+- **[Quick Start Guide](docs/QUICK_START.md)** - Docker deployment (recommended)
+- **[Docker Guide](docs/DOCKER_GUIDE.md)** - Detailed Docker documentation
+- **[Handoff Checklist](docs/HANDOFF_CHECKLIST.md)** - Complete handoff documentation
+- **[Technical Overview](docs/TECHNICAL_OVERVIEW.md)** - Architecture details
+- **[Product Requirements](docs/PRD.txt)** - Product specifications
+
+---
+
+## Prerequisites (Manual Installation)
 
 - **Python**: 3.9 or higher
 - **GPU**: NVIDIA GPU with 4GB+ VRAM (recommended) or CPU

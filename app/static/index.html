@@ -102,6 +102,82 @@
             border-radius: 2px;
             transition: width 0.3s ease;
         }
+
+        /* Auto-translate toggle switch */
+        .auto-translate-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .dark .toggle-slider {
+            background-color: #475569;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #4f46e5;
+        }
+
+        .dark input:checked+.toggle-slider {
+            background-color: #6366f1;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .auto-translate-status {
+            font-size: 11px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .dark .auto-translate-status {
+            color: #94a3b8;
+        }
+
+        /* Preserve whitespace and line breaks in output text */
+        #outputText {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 
@@ -172,6 +248,23 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Auto-Translate Toggle -->
+            <div class="flex items-center justify-center mb-6">
+                <div
+                    class="auto-translate-toggle glass-panel px-4 py-2.5 rounded-full border border-white/60 dark:border-slate-700/60 shadow-sm">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="autoTranslateToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <label for="autoTranslateToggle"
+                        class="cursor-pointer text-sm font-medium text-slate-700 dark:text-slate-300 select-none">
+                        Auto-translate as I type
+                    </label>
+                    <span id="autoTranslateStatus" class="auto-translate-status ml-2"></span>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mb-6">
                 <div
                     class="glass-panel rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg shadow-slate-200/20 dark:shadow-none overflow-hidden flex flex-col h-[380px] group transition-all duration-300 hover:shadow-xl hover:border-primary/20 dark:hover:border-primary/40 focus-within:ring-2 ring-primary/20">
@@ -319,6 +412,14 @@
         let sourceLang = 'en';
         let targetLang = 'hi';
 
+        // Auto-translate feature state
+        let autoTranslateEnabled = false;
+        let autoTranslateTimer = null;
+        let currentAbortController = null;
+        const AUTO_TRANSLATE_DELAY = 300; // milliseconds
+        const AUTO_TRANSLATE_MIN_LENGTH = 2; // minimum characters to trigger
+        const MAX_AUTO_TRANSLATE_LENGTH = 1000; // maximum length for auto-translate
+
         // DOM Elements
         const inputText = document.getElementById('inputText');
         const outputText = document.getElementById('outputText');
@@ -338,12 +439,15 @@
         const progressText = document.getElementById('progressText');
         const metricsDisplay = document.getElementById('metricsDisplay');
         const toast = document.getElementById('toast');
+        const autoTranslateToggle = document.getElementById('autoTranslateToggle');
+        const autoTranslateStatus = document.getElementById('autoTranslateStatus');
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             checkHealth();
             updateCounters();
             setupEventListeners();
+            setupAutoTranslate();
         });
 
         // Event Listeners
@@ -426,7 +530,7 @@
         }
 
         // Short Translation
-        async function translateShort(text) {
+        async function translateShort(text, abortSignal = null) {
             try {
                 translateBtn.disabled = true;
                 translateBtn.querySelector('span:last-child').textContent = 'Translating...';
@@ -440,6 +544,7 @@
                         source_lang: sourceLang,
                         target_lang: targetLang,
                     }),
+                    signal: abortSignal // Add abort signal support
                 });
 
                 if (!response.ok) {
@@ -454,6 +559,11 @@
                 showToast('Translation complete!', 'success');
 
             } catch (error) {
+                if (error.name === 'AbortError') {
+                    // Request was cancelled, don't show error
+                    console.log('Translation cancelled (user still typing)');
+                    return;
+                }
                 console.error('Translation error:', error);
                 showToast(error.message || 'Translation failed', 'error');
             } finally {
@@ -549,17 +659,35 @@
 
         // Copy Output
         async function copyOutput() {
-            const text = outputText.textContent;
+            // Use innerText instead of textContent to preserve line breaks and formatting
+            const text = outputText.innerText;
 
-            if (!text) {
+            if (!text || !text.trim()) {
                 showToast('Nothing to copy', 'error');
                 return;
             }
 
             try {
                 await navigator.clipboard.writeText(text);
+
+                // Enhanced visual feedback
+                const copyBtn = document.getElementById('copyBtn');
+                const originalHTML = copyBtn.innerHTML;
+
+                // Show success icon temporarily
+                copyBtn.innerHTML = '<span class="material-symbols-rounded text-lg">check_circle</span>';
+                copyBtn.classList.add('text-green-600');
+
                 showToast('Copied to clipboard!', 'success');
+
+                // Restore original icon after 1.5 seconds
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalHTML;
+                    copyBtn.classList.remove('text-green-600');
+                }, 1500);
+
             } catch (error) {
+                console.error('Copy failed:', error);
                 showToast('Failed to copy', 'error');
             }
         }
@@ -573,6 +701,113 @@
                 showToast('Pasted!', 'success');
             } catch (error) {
                 showToast('Failed to paste', 'error');
+            }
+        }
+
+        // Auto-Translate Setup
+        function setupAutoTranslate() {
+            // Toggle event listener
+            autoTranslateToggle.addEventListener('change', (e) => {
+                autoTranslateEnabled = e.target.checked;
+                console.log('Auto-translate:', autoTranslateEnabled ? 'enabled' : 'disabled');
+
+                // Update button state
+                if (autoTranslateEnabled) {
+                    translateBtn.disabled = true;
+                    translateBtn.style.opacity = '0.5';
+                    translateBtn.title = 'Auto-translate is enabled';
+                    autoTranslateStatus.textContent = '✓ Active';
+                } else {
+                    translateBtn.disabled = false;
+                    translateBtn.style.opacity = '1';
+                    translateBtn.title = '';
+                    autoTranslateStatus.textContent = '';
+                }
+
+                // Clear any pending translation when toggled off
+                if (!autoTranslateEnabled && autoTranslateTimer) {
+                    clearTimeout(autoTranslateTimer);
+                    autoTranslateTimer = null;
+                }
+
+                // Cancel any in-flight request
+                if (!autoTranslateEnabled && currentAbortController) {
+                    currentAbortController.abort();
+                    currentAbortController = null;
+                }
+            });
+
+            // Input event listener for auto-translate
+            inputText.addEventListener('input', () => {
+                if (!autoTranslateEnabled) return;
+
+                // Clear existing timer
+                if (autoTranslateTimer) {
+                    clearTimeout(autoTranslateTimer);
+                }
+
+                // Cancel any in-flight request
+                if (currentAbortController) {
+                    currentAbortController.abort();
+                    currentAbortController = null;
+                }
+
+                const text = inputText.value.trim();
+
+                // Check if text is too short
+                if (text.length < AUTO_TRANSLATE_MIN_LENGTH) {
+                    outputText.textContent = '';
+                    autoTranslateStatus.textContent = '✓ Active';
+                    return;
+                }
+
+                // Check if text is too long for auto-translate
+                if (text.length > MAX_AUTO_TRANSLATE_LENGTH) {
+                    autoTranslateStatus.textContent = '⚠️ Text too long for auto-translate';
+                    return;
+                }
+
+                // Show pending status
+                autoTranslateStatus.textContent = '⏱️ Typing...';
+
+                // Set new timer
+                autoTranslateTimer = setTimeout(() => {
+                    triggerAutoTranslate();
+                }, AUTO_TRANSLATE_DELAY);
+            });
+        }
+
+        // Trigger auto-translate
+        async function triggerAutoTranslate() {
+            const text = inputText.value.trim();
+
+            if (!text || text.length < AUTO_TRANSLATE_MIN_LENGTH) return;
+
+            // Create abort controller for this request
+            currentAbortController = new AbortController();
+
+            try {
+                // Show translating status
+                autoTranslateStatus.textContent = '🔄 Translating...';
+                outputText.style.opacity = '0.6';
+
+                // Call translation function with abort signal
+                await translateShort(text, currentAbortController.signal);
+
+                // Update status on success
+                autoTranslateStatus.textContent = '✓ Active';
+                outputText.style.opacity = '1';
+
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    console.log('Translation cancelled (user still typing)');
+                } else {
+                    console.error('Auto-translate error:', error);
+                    autoTranslateStatus.textContent = '❌ Error';
+                }
+                outputText.style.opacity = '1';
+            } finally {
+                currentAbortController = null;
             }
         }
 
