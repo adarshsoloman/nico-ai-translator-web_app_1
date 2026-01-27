@@ -15,6 +15,7 @@ from app.core.adapter_manager import AdapterManager
 from app.core.translator import TranslationEngine
 from app.core.chunker import TextChunker
 from app.core.metrics import MetricsCollector
+from app.core.cache import TranslationCache  # NEW
 from app.api import routes
 from app.core.config import CORS_ORIGINS
 
@@ -28,6 +29,7 @@ adapter_manager = None
 translation_engine = None
 chunker = None
 metrics_collector = None
+translation_cache = None  # NEW
 
 
 @asynccontextmanager
@@ -41,7 +43,7 @@ async def lifespan(app: FastAPI):
     logger.info("NICO AI Translator - Starting Up")
     logger.info("=" * 60)
     
-    global model_loader, adapter_manager, translation_engine, chunker, metrics_collector
+    global model_loader, adapter_manager, translation_engine, chunker, metrics_collector, translation_cache
     
     try:
         # Initialize metrics collector
@@ -64,15 +66,20 @@ async def lifespan(app: FastAPI):
         else:
             logger.warning("⚠ Using base model only (adapters not loaded)")
         
-        # Initialize translation engine
-        logger.info("Initializing translation engine...")
-        translation_engine = TranslationEngine(model, tokenizer, adapter_manager)
-        logger.info("✓ Translation engine ready")
-        
         # Initialize chunker
         logger.info("Initializing text chunker...")
         chunker = TextChunker(tokenizer)
         logger.info("✓ Text chunker ready")
+        
+        # Initialize translation cache
+        logger.info("Initializing translation cache...")
+        translation_cache = TranslationCache(max_size=500)
+        logger.info("✓ Translation cache ready (max_size=500)")
+        
+        # Initialize translation engine with cache
+        logger.info("Initializing translation engine...")
+        translation_engine = TranslationEngine(model, tokenizer, adapter_manager, cache=translation_cache)
+        logger.info("✓ Translation engine ready")
         
         # Set dependencies in routes
         model_info = model_loader.get_model_info()
@@ -81,7 +88,8 @@ async def lifespan(app: FastAPI):
             chunker,
             metrics_collector,
             adapter_manager,
-            model_info
+            model_info,
+            translation_cache  # NEW
         )
         
         logger.info("=" * 60)

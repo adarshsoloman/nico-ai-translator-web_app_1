@@ -28,16 +28,18 @@ chunker = None
 metrics_collector = None
 adapter_manager = None
 model_info = None
+translation_cache = None  # NEW
 
 
-def set_dependencies(engine, chunk, metrics, adapter_mgr, mdl_info):
+def set_dependencies(engine, chunk, metrics, adapter_mgr, mdl_info, cache=None):
     """Set dependencies from main app"""
-    global translation_engine, chunker, metrics_collector, adapter_manager, model_info
+    global translation_engine, chunker, metrics_collector, adapter_manager, model_info, translation_cache
     translation_engine = engine
     chunker = chunk
     metrics_collector = metrics
     adapter_manager = adapter_mgr
     model_info = mdl_info
+    translation_cache = cache  # NEW
 
 
 @router.get("/health", response_model=HealthResponse)
@@ -239,8 +241,37 @@ async def get_metrics():
             raise HTTPException(status_code=503, detail="Metrics not available")
         
         metrics = metrics_collector.get_metrics()
+        
+        # Add cache stats if available
+        if translation_cache:
+            metrics["cache_stats"] = translation_cache.get_stats()
+        
         return MetricsResponse(**metrics)
         
     except Exception as e:
         logger.error(f"Failed to get metrics: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve metrics")
+
+
+@router.post("/cache/clear")
+async def clear_cache():
+    """
+    Clear translation cache
+    Useful for testing and debugging
+    """
+    try:
+        if not translation_cache:
+            raise HTTPException(status_code=503, detail="Cache not available")
+        
+        translation_cache.clear()
+        logger.info("Translation cache cleared via API")
+        
+        return {
+            "message": "Cache cleared successfully",
+            "stats": translation_cache.get_stats()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to clear cache: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to clear cache")
+

@@ -21,11 +21,12 @@ logger = logging.getLogger(__name__)
 class TranslationEngine:
     """Handles translation with NLLB models"""
     
-    def __init__(self, model, tokenizer, adapter_manager):
+    def __init__(self, model, tokenizer, adapter_manager, cache=None):
         self.model = model
         self.tokenizer = tokenizer
         self.adapter_manager = adapter_manager
         self.device = DEVICE
+        self.cache = cache  # Translation result cache
         
     def validate_input(self, text: str, source_lang: str, target_lang: str):
         """
@@ -81,6 +82,16 @@ class TranslationEngine:
             if not is_valid:
                 raise ValueError(error_msg)
             
+            # Check cache first
+            if self.cache:
+                cached_result = self.cache.get(text, source_lang, target_lang)
+                if cached_result:
+                    logger.info(f"Cache hit for translation ({source_lang} → {target_lang})")
+                    # Mark as from cache
+                    cached_result["metrics"]["from_cache"] = True
+                    return cached_result
+            
+
             # Check if text contains multiple lines (paragraphs or line breaks)
             # Split by any newline (single or double) to preserve all formatting
             lines = [line.strip() for line in text.split('\n') if line.strip()]
@@ -110,7 +121,7 @@ class TranslationEngine:
                 total_time_ms = (time.time() - start_time) * 1000
                 tokens_per_second = (total_output_tokens / total_inference_time_ms) * 1000 if total_inference_time_ms > 0 else 0
                 
-                return {
+                result = {
                     "translated_text": translated_text,
                     "source_lang": source_lang,
                     "target_lang": target_lang,
@@ -121,11 +132,25 @@ class TranslationEngine:
                         "input_tokens": total_input_tokens,
                         "output_tokens": total_output_tokens,
                         "tokens_per_second": round(tokens_per_second, 2),
+                        "from_cache": False
                     }
                 }
+                
+                # Store in cache
+                if self.cache:
+                    self.cache.set(text, source_lang, target_lang, result)
+                
+                return result
             else:
                 # Single line - translate normally
-                return self._translate_single(text, source_lang, target_lang, decoding_params)
+                result = self._translate_single(text, source_lang, target_lang, decoding_params)
+                result["metrics"]["from_cache"] = False
+                
+                # Store in cache
+                if self.cache:
+                    self.cache.set(text, source_lang, target_lang, result)
+                
+                return result
             
         except Exception as e:
             logger.error(f"Translation failed: {str(e)}", exc_info=True)

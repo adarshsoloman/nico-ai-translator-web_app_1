@@ -44,6 +44,7 @@ class TranslationMetrics(BaseModel):
     input_tokens: int
     output_tokens: int
     tokens_per_second: float
+    from_cache: bool = False  # Indicates if result was from cache
 
 
 class TranslateResponse(BaseModel):
@@ -65,6 +66,16 @@ class HealthResponse(BaseModel):
     using_adapters: bool
 
 
+class CacheStats(BaseModel):
+    """Cache statistics"""
+    size: int
+    max_size: int
+    hits: int
+    misses: int
+    hit_rate_percent: float
+    total_requests: int
+
+
 class MetricsResponse(BaseModel):
     """Response model for metrics endpoint"""
     total_requests: int
@@ -73,3 +84,4 @@ class MetricsResponse(BaseModel):
     requests_by_direction: Dict[str, int]
     total_tokens_processed: int
     uptime_seconds: int
+    cache_stats: Optional[CacheStats] = None  # Cache performance metrics
