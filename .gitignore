@@ -61,3 +61,5 @@ htmlcov/
 dmypy.json
 text/
 *.zip
+nllb_ct2_int8/
+nllb_ct2_fp16/
