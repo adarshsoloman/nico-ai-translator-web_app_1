@@ -50,12 +50,32 @@ cp .env.example .env
 # 6. Download NLTK data
 python -c "import nltk; nltk.download('punkt')"
 
-# 7. Download INT8 model (if not present)
+# 7. Download INT8 model from HuggingFace
 python miscellaneous/download_int8_model.py
 
 # 8. Run the application
 python -m app.main
 ```
+
+### 📥 Downloading the INT8 Model
+
+The INT8 quantized model is **not included in the repository** to keep it lightweight. Download it from HuggingFace:
+
+**Option 1: Automatic Download (Recommended)**
+```bash
+python miscellaneous/download_int8_model.py
+```
+This will download the model to `./nllb_ct2_int8/` automatically.
+
+**Option 2: Manual Download**
+1. Visit: [Rewatiramans/nllb-200-distilled-600M-8bit](https://huggingface.co/Rewatiramans/nllb-200-distilled-600M-8bit)
+2. Download all files to `./nllb_ct2_int8/` directory
+3. Ensure your `.env` file has a valid `HF_TOKEN`
+
+**Model Details:**
+- Size: 879MB (INT8 quantized)
+- Source: Rewatiramans on HuggingFace
+- Based on: Meta's NLLB-200-distilled-600M
 
 ### Access the Application
 
