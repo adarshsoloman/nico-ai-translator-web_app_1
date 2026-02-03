@@ -1,0 +1,302 @@
+ ______                 ______            _
+(_____ \               (_____ \          | |
+ _____) ) _   _  ____   _____) )___    __| |
+|  __  / | | | ||  _ \ |  ____// _ \  / _  |
+| |  \ \ | |_| || | | || |    | |_| |( (_| |
+|_|   |_||____/ |_| |_||_|     \___/  \____|
+
+For detailed documentation and guides, please visit:
+https://docs.runpod.io/ and https://blog.runpod.io/
+
+
+root@a8bff502ec40:/workspace/scripts# ls -lh
+total 3.0M
+-rw-rw-rw- 1 root root 5.5K Feb  2 06:07 README.md
+-rw-rw-rw- 1 root root 2.4K Feb  2 06:07 RUNPOD_BASE_MODEL_FIX.md
+-rw-rw-rw- 1 root root 1.8K Feb  2 06:07 RUNPOD_CT2_GUIDE.md
+-rw-rw-rw- 1 root root 2.8K Feb  2 06:07 RUNPOD_UPLOAD.md
+-rw-rw-rw- 1 root root  17K Feb  2 06:07 analyze_results.py
+-rw-rw-rw- 1 root root  11K Feb  2 06:07 benchmark_nllb_models.py
+-rw-rw-rw- 1 root root 2.2K Feb  2 06:20 convert_to_ct2.py
+drwxrwxrwx 2 root root 2.9M Feb  2 06:29 nllb_ct2_fp16
+-rw-rw-rw- 1 root root  355 Feb  2 06:07 requirements.txt
+-rw-rw-rw- 1 root root 6.1K Feb  2 06:07 test_data.json
+root@a8bff502ec40:/workspace/scripts# python benchmark_nllb_models.py --model_path ./nllb_ct2_fp16/ 2>&1 | tee benchmark_ct2_log.txt
+/usr/local/lib/python3.11/dist-packages/torchmetrics/utilities/imports.py:23: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.
+html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import DistributionNotFound, get_distribution
+^[[B^[[B
+📂 Loading evaluation datasets from ../eval_dataset...
+   ✓ Loaded 1012 FLORES pairs
+   ✓ Loaded 1997 NTREX pairs
+📥 Loading tokenizer from ./nllb_ct2_fp16/...
+================================================================================
+NLLB MODEL BENCHMARKING SUITE (CTRANSLATE2)
+================================================================================
+CTranslate2 version: 4.5.0
+CUDA available: True
+GPU: NVIDIA GeForce RTX 4090
+Test sentences EN→HI: 3009
+Test sentences HI→EN: 3009
+================================================================================
+
+LOADING: CTranslate2 (float16)
+✓ Loaded in 2.07s | GPU: 2090.0MB
+
+BENCHMARKING: float16 | EN_TO_HI
+Translating: 100%|██████████| 3009/3009 [07:06<00:00,  7.06it/s]
+📊 Calculating quality...
+
+📥 Loading COMET model...
+Fetching 5 files: 100%|██████████| 5/5 [00:07<00:00,  1.52s/it]
+Lightning automatically upgraded your loaded checkpoint from v1.8.3.post1 to v2.6.1. To apply the upgrade to your files permanently, run `python -m pytorch_lightning.utilities.upgrade_c
+heckpoint ../../root/.cache/huggingface/hub/models--Unbabel--wmt22-comet-da/snapshots/2760a223ac957f30acfb18c8aa649b01cf1d75f2/checkpoints/model.ckpt`
+Encoder model frozen.
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/core/saving.py:197: Found keys that are not in the model state dict but in the checkpoint: ['encoder.model.embeddings.position_
+ids']
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which wil
+l trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:15<00:00, 23.90it/s]
+
+BENCHMARKING: float16 | HI_TO_EN
+Translating: 100%|██████████| 3009/3009 [06:09<00:00,  8.15it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+📊 Calculating quality...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:14<00:00, 25.39it/s]
+
+LOADING: CTranslate2 (int8_float16)
+✓ Loaded in 6.07s | GPU: 1204.0MB
+
+BENCHMARKING: int8_float16 | EN_TO_HI
+Translating: 100%|██████████| 3009/3009 [07:46<00:00,  6.45it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+📊 Calculating quality...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:14<00:00, 26.16it/s]
+
+BENCHMARKING: int8_float16 | HI_TO_EN
+Translating: 100%|██████████| 3009/3009 [06:38<00:00,  7.56it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+📊 Calculating quality...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:14<00:00, 26.79it/s]
+
+LOADING: CTranslate2 (int4_float16)
+Traceback (most recent call last):
+  File "/workspace/scripts/benchmark_nllb_models.py", line 252, in <module>
+    main()
+  File "/workspace/scripts/benchmark_nllb_models.py", line 248, in main
+    benchmark.run_full_suite()
+  File "/workspace/scripts/benchmark_nllb_models.py", line 219, in run_full_suite
+    translator, load_time, memory = self.load_translator(precision)
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/scripts/benchmark_nllb_models.py", line 134, in load_translator
+    translator = ctranslate2.Translator(
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Invalid compute type: int4_float16
+root@a8bff502ec40:/workspace/scripts# ls -lh benchmark_*.csv benchmark_*.json
+ls: cannot access 'benchmark_*.csv': No such file or directory
+ls: cannot access 'benchmark_*.json': No such file or directory
+root@a8bff502ec40:/workspace/scripts# clear
+root@a8bff502ec40:/workspace/scripts# python benchmark_nllb_models.py --model_path ./nllb_ct2_fp16 2>&1 | tee benchmark_ct2_final.txt
+/usr/local/lib/python3.11/dist-packages/torchmetrics/utilities/imports.py:23: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.
+html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import DistributionNotFound, get_distribution
+
+📂 Loading evaluation datasets from ../eval_dataset...
+   ✓ Loaded 1012 FLORES pairs
+   ✓ Loaded 1997 NTREX pairs
+📥 Loading tokenizer from ./nllb_ct2_fp16...
+================================================================================
+NLLB MODEL BENCHMARKING SUITE (CTRANSLATE2)
+================================================================================
+CTranslate2 version: 4.5.0
+CUDA available: True
+GPU: NVIDIA GeForce RTX 4090
+Test sentences EN→HI: 3009
+Test sentences HI→EN: 3009
+================================================================================
+
+LOADING: CTranslate2 (float16)
+✓ Loaded in 3.69s | GPU: 2090.0MB
+
+BENCHMARKING: float16 | EN_TO_HI
+Translating: 100%|██████████| 3009/3009 [06:59<00:00,  7.18it/s]
+📊 Calculating quality...
+
+📥 Loading COMET model...
+Fetching 5 files: 100%|██████████| 5/5 [00:00<00:00, 10255.02it/s]
+Lightning automatically upgraded your loaded checkpoint from v1.8.3.post1 to v2.6.1. To apply the upgrade to your files permanently, run `python -m pytorch_lightning.utilities.upgrade_c
+heckpoint ../../root/.cache/huggingface/hub/models--Unbabel--wmt22-comet-da/snapshots/2760a223ac957f30acfb18c8aa649b01cf1d75f2/checkpoints/model.ckpt`
+Encoder model frozen.
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/core/saving.py:197: Found keys that are not in the model state dict but in the checkpoint: ['encoder.model.embeddings.position_
+ids']
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which wil
+l trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:15<00:00, 24.83it/s]
+
+BENCHMARKING: float16 | HI_TO_EN
+Translating: 100%|██████████| 3009/3009 [06:04<00:00,  8.26it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+📊 Calculating quality...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:14<00:00, 26.58it/s]
+
+LOADING: CTranslate2 (int8_float16)
+✓ Loaded in 5.51s | GPU: 1204.0MB
+
+BENCHMARKING: int8_float16 | EN_TO_HI
+Translating: 100%|██████████| 3009/3009 [07:45<00:00,  6.47it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+📊 Calculating quality...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:14<00:00, 25.90it/s]
+
+BENCHMARKING: int8_float16 | HI_TO_EN
+Translating: 100%|██████████| 3009/3009 [06:34<00:00,  7.62it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs metrics and artifacts automat
+ically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs automatically with the Light
+ning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/utilities/_pytree.py:21: `isinstance(treespec, LeafSpec)` is deprecated, use `isinstance(treespec, TreeSpec) and treespec.is_le
+af()` instead.
+📊 Calculating quality...
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+        - Avoid using `tokenizers` before the fork if possible
+        - Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:14<00:00, 26.35it/s]
+
+            model direction  avg_time_ms  throughput_sps  bleu_score  comet_score  load_time_s  gpu_memory_mb  ram_gb
+     CT2-float16  en_to_hi       139.16            7.19       27.59       0.7816         3.69         2090.0   37.26
+     CT2-float16  hi_to_en       120.91            8.27       35.97       0.8770         3.69         2090.0   37.26
+CT2-int8_float16  en_to_hi       154.45            6.47       27.46       0.7818         5.51         1204.0   40.24
+CT2-int8_float16  hi_to_en       131.11            7.63       35.90       0.8771         5.51         1204.0   40.24
+
+✅ Results saved to:
+- benchmark_results_ct2_20260202_070540.json
+- benchmark_summary_ct2_20260202_070540.csv
+root@a8bff502ec40:/workspace/scripts# capture-pane -S - -p > tmux_complete_log.txt
+-bash: capture-pane: command not found
+root@a8bff502ec40:/workspace/scripts# # Without attaching, run this:
+tmux capture-pane -t ct2_benchmark -S - -p > tmux_session_log.txt
+can't find pane: ct2_benchmark
+root@a8bff502ec40:/workspace/scripts# tmux capture-pane -t benchmark -S - -p > tmux_session_log.txt
+

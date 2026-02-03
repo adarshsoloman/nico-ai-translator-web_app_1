@@ -3,6 +3,12 @@ Main Application Module
 FastAPI application initialization and startup
 """
 
+import os
+
+# Set offline mode permanently - no internet required
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -51,14 +57,14 @@ async def lifespan(app: FastAPI):
         metrics_collector = MetricsCollector()
         
         # Load model
-        logger.info("Loading NLLB base model...")
+        logger.info("Loading NLLB CT2 model...")
         model_loader = ModelLoader()
-        model, tokenizer = model_loader.load_model()
-        logger.info("✓ Model loaded successfully")
+        translator, tokenizer = model_loader.load_model()  # CT2 returns translator, not model
+        logger.info("✓ CT2 model loaded successfully")
         
         # Initialize adapter manager
         logger.info("Initializing adapter manager...")
-        adapter_manager = AdapterManager(model, tokenizer)
+        adapter_manager = AdapterManager(translator, tokenizer)  # Pass translator
         adapters_loaded = adapter_manager.load_adapters()
         
         if adapters_loaded:
@@ -78,7 +84,7 @@ async def lifespan(app: FastAPI):
         
         # Initialize translation engine with cache
         logger.info("Initializing translation engine...")
-        translation_engine = TranslationEngine(model, tokenizer, adapter_manager, cache=translation_cache)
+        translation_engine = TranslationEngine(translator, tokenizer, adapter_manager, cache=translation_cache)  # Pass translator
         logger.info("✓ Translation engine ready")
         
         # Set dependencies in routes

@@ -1,0 +1,277 @@
+ ______                 ______            _
+(_____ \               (_____ \          | |
+ _____) ) _   _  ____   _____) )___    __| |
+|  __  / | | | ||  _ \ |  ____// _ \  / _  |
+| |  \ \ | |_| || | | || |    | |_| |( (_| |
+|_|   |_||____/ |_| |_||_|     \___/  \____|
+
+For detailed documentation and guides, please visit:
+https://docs.runpod.io/ and https://blog.runpod.io/
+
+
+root@363b362210a6:/workspace/scripts# ls -lh
+total 54K
+-rw-rw-rw- 1 root root 5.5K Jan 31 14:14 README.md
+-rw-rw-rw- 1 root root 2.8K Jan 31 14:03 RUNPOD_UPLOAD.md
+-rw-rw-rw- 1 root root  17K Jan 31 14:13 analyze_results.py
+-rw-rw-rw- 1 root root  22K Jan 31 14:12 benchmark_nllb_models.py
+-rw-rw-rw- 1 root root  357 Jan 31 14:11 requirements.txt
+-rw-rw-rw- 1 root root 6.1K Jan 31 13:55 test_data.json
+root@363b362210a6:/workspace/scripts# python benchmark_nllb_models.py 2>&1 | tee benchmark_log.txt
+
+🚀 Starting NLLB Model Benchmark Suite...
+
+
+📂 Loading evaluation datasets from ../eval_dataset...
+   ✓ Loaded 1012 FLORES EN→HI pairs
+   ✓ Loaded 1012 FLORES HI→EN pairs
+   ✓ Loaded 1997 NTREX EN→HI pairs
+   ✓ Loaded 1997 NTREX HI→EN pairs
+
+📊 Total parallel pairs loaded:
+   EN→HI: 3009 source + 3009 reference
+   HI→EN: 3009 source + 3009 reference
+================================================================================
+NLLB MODEL BENCHMARKING SUITE
+================================================================================
+PyTorch version: 2.4.1+cu124
+CUDA available: True
+GPU: NVIDIA GeForce RTX 4090
+GPU Memory: 25.28 GB
+Test sentences EN→HI: 3009
+Test sentences HI→EN: 3009
+================================================================================
+
+⏱️  Estimated runtime: 6-8 hours (with BLEU + COMET scoring)
+💡 Tip: Run in tmux to avoid interruption!
+
+Press Enter to start benchmarking...
+`torch_dtype` is deprecated! Use `dtype` instead!
+We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use m
+ore memory (at your own risk).
+/usr/local/lib/python3.11/dist-packages/transformers/quantizers/auto.py:239: UserWarning: You passed `quantization_config` or equivalent parameters to `from
+_pretrained` but the model you're loading already has a `quantization_config` attribute. The `quantization_config` from the model will be used.
+  warnings.warn(warning_msg)
+We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use m
+ore memory (at your own risk).
+
+================================================================================
+LOADING: Base Model (Float16)
+Path: facebook/nllb-200-distilled-600M
+Type: base
+================================================================================
+Loading base model (float16)...
+
+✗ Error loading model: Due to a serious vulnerability issue in `torch.load`, even with `weights_only=True`, we now require users to upgrade torch to at leas
+t v2.6 in order to use the function. This version restriction does not apply when loading files with safetensors.
+See the vulnerability report here https://nvd.nist.gov/vuln/detail/CVE-2025-32434
+
+✗ Error benchmarking Base Model (Float16): Due to a serious vulnerability issue in `torch.load`, even with `weights_only=True`, we now require users to upgr
+ade torch to at least v2.6 in order to use the function. This version restriction does not apply when loading files with safetensors.
+See the vulnerability report here https://nvd.nist.gov/vuln/detail/CVE-2025-32434
+Continuing with next model...
+
+================================================================================
+LOADING: INT8 Quantized
+Path: Rewatiramans/nllb-200-distilled-600M-8bit
+Type: 8bit
+================================================================================
+Loading 8-bit quantized model...
+Loading tokenizer...
+
+✓ Model loaded successfully in 21.53s
+✓ GPU Memory: 20973 MB / 24564 MB
+✓ RAM: 51.83 GB / 187.85 GB
+
+--------------------------------------------------------------------------------
+BENCHMARKING: EN → TO → HI
+--------------------------------------------------------------------------------
+Warming up (3 runs)...
+Running benchmark on 3009 sentences...
+Translating: 100%|██████████| 3009/3009 [40:07<00:00,  1.25it/s]
+
+📊 Calculating quality metrics...
+   Computing BLEU score...
+   Computing COMET score...
+
+📥 Downloading and loading COMET model (first time only)...
+   This may take a few minutes...
+Fetching 5 files: 100%|██████████| 5/5 [00:04<00:00,  1.05it/s]
+/usr/local/lib/python3.11/dist-packages/lightning_fabric/utilities/cloud_io.py:73: You are using `torch.load` with `weights_only=False` (the current default
+ value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickl
+ing (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_on
+ly` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded
+via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=Tr
+ue` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental featur
+e.
+Lightning automatically upgraded your loaded checkpoint from v1.8.3.post1 to v2.6.1. To apply the upgrade to your files permanently, run `python -m pytorch_
+lightning.utilities.upgrade_checkpoint ../../root/.cache/huggingface/hub/models--Unbabel--wmt22-comet-da/snapshots/2760a223ac957f30acfb18c8aa649b01cf1d75f2/
+checkpoints/model.ckpt`
+Encoder model frozen.
+/usr/local/lib/python3.11/dist-packages/pytorch_lightning/core/saving.py:197: Found keys that are not in the model state dict but in the checkpoint: ['encod
+er.model.embeddings.position_ids']
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs
+metrics and artifacts automatically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs
+ automatically with the Lightning model registry.
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision(
+'medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmu
+l_precision.html#torch.set_float32_matmul_precision
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+   ✓ COMET model loaded successfully!
+   Computing COMET scores (this may take a while)...
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:10<00:00, 36.20it/s]
+
+✓ Speed Metrics:
+   Average time: 800.13 ms
+   Min/Max time: 120.87 / 2858.92 ms
+   Throughput: 1.25 sentences/sec
+   Total time: 2407.59 seconds
+
+✓ Quality Metrics:
+   BLEU Score: 27.5
+   COMET Score: 0.7821
+
+--------------------------------------------------------------------------------
+BENCHMARKING: HI → TO → EN
+--------------------------------------------------------------------------------
+Warming up (3 runs)...
+Running benchmark on 3009 sentences...
+Translating: 100%|██████████| 3009/3009 [34:15<00:00,  1.46it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs
+metrics and artifacts automatically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs
+ automatically with the Lightning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+📊 Calculating quality metrics...
+   Computing BLEU score...
+   Computing COMET score...
+   Computing COMET scores (this may take a while)...
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:09<00:00, 37.98it/s]
+/usr/local/lib/python3.11/dist-packages/transformers/quantizers/auto.py:239: UserWarning: You passed `quantization_config` or equivalent parameters to `from
+_pretrained` but the model you're loading already has a `quantization_config` attribute. The `quantization_config` from the model will be used.
+  warnings.warn(warning_msg)
+We will use 90% of the memory on device 0 for storing the model, and 10% for the buffer to avoid OOM. You can set `max_memory` in to a higher value to use m
+ore memory (at your own risk).
+
+✓ Speed Metrics:
+   Average time: 683.14 ms
+   Min/Max time: 122.95 / 5133.13 ms
+   Throughput: 1.46 sentences/sec
+   Total time: 2055.58 seconds
+
+✓ Quality Metrics:
+   BLEU Score: 35.91
+   COMET Score: 0.8771
+
+Cleaning up INT8 Quantized...
+
+================================================================================
+LOADING: INT4 Quantized
+Path: Rewatiramans/nllb-200-distilled-600M-4bit
+Type: 4bit
+================================================================================
+Loading 4-bit quantized model...
+Loading tokenizer...
+
+✓ Model loaded successfully in 18.63s
+✓ GPU Memory: 21559 MB / 24564 MB
+✓ RAM: 55.67 GB / 187.85 GB
+
+--------------------------------------------------------------------------------
+BENCHMARKING: EN → TO → HI
+--------------------------------------------------------------------------------
+Warming up (3 runs)...
+Running benchmark on 3009 sentences...
+Translating: 100%|██████████| 3009/3009 [22:09<00:00,  2.26it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs
+metrics and artifacts automatically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs
+ automatically with the Lightning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+📊 Calculating quality metrics...
+   Computing BLEU score...
+   Computing COMET score...
+   Computing COMET scores (this may take a while)...
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:10<00:00, 35.78it/s]
+
+✓ Speed Metrics:
+   Average time: 441.67 ms
+   Min/Max time: 65.32 / 2778.67 ms
+   Throughput: 2.26 sentences/sec
+   Total time: 1328.97 seconds
+
+✓ Quality Metrics:
+   BLEU Score: 27.19
+   COMET Score: 0.777
+
+--------------------------------------------------------------------------------
+BENCHMARKING: HI → TO → EN
+--------------------------------------------------------------------------------
+Warming up (3 runs)...
+Running benchmark on 3009 sentences...
+Translating: 100%|██████████| 3009/3009 [18:50<00:00,  2.66it/s]
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+💡 Tip: For seamless cloud logging and experiment tracking, try installing [litlogger](https://pypi.org/project/litlogger/) to enable LitLogger, which logs
+metrics and artifacts automatically to the Lightning Experiments platform.
+💡 Tip: For seamless cloud uploads and versioning, try installing [litmodels](https://pypi.org/project/litmodels/) to enable LitModelCheckpoint, which syncs
+ automatically with the Lightning model registry.
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+📊 Calculating quality metrics...
+   Computing BLEU score...
+   Computing COMET score...
+   Computing COMET scores (this may take a while)...
+Predicting DataLoader 0: 100%|██████████| 377/377 [00:10<00:00, 37.57it/s]
+
+✓ Speed Metrics:
+   Average time: 375.75 ms
+   Min/Max time: 65.1 / 2812.02 ms
+   Throughput: 2.66 sentences/sec
+   Total time: 1130.63 seconds
+
+✓ Quality Metrics:
+   BLEU Score: 34.34
+   COMET Score: 0.8737
+
+Cleaning up INT4 Quantized...
+
+================================================================================
+BENCHMARK RESULTS SUMMARY
+================================================================================
+
+          Model Direction  Sentences  Avg Time (ms)  Throughput (s/s)  GPU Mem (MB)  RAM (GB)  Load Time (s)  BLEU  COMET
+INT8 Quantized  en→to→hi       3009         800.13              1.25       20973.0     51.83          21.53 27.50 0.7821
+INT8 Quantized  hi→to→en       3009         683.14              1.46       20973.0     51.83          21.53 35.91 0.8771
+INT4 Quantized  en→to→hi       3009         441.67              2.26       21559.0     55.67          18.63 27.19 0.7770
+INT4 Quantized  hi→to→en       3009         375.75              2.66       21559.0     55.67          18.63 34.34 0.8737
+
+================================================================================
+✓ RESULTS SAVED
+================================================================================
+Detailed results: benchmark_results_20260131_194456.json
+Summary table:    benchmark_summary_20260131_194456.csv
+
+Download these files from RunPod to analyze results!
+================================================================================
+
+✅ Benchmark completed in 117.5 minutes!
+
+🎯 Next steps:
+   1. Download the JSON and CSV files
+   2. Review BLEU and COMET scores
+   3. Run analyze_results.py for visualizations
+   4. Choose the best model for your use case
+   5. Proceed with QLoRA training on the chosen model
+
+root@363b362210a6:/workspace/scripts# tmux capture-pane -pS -32768 > tmux_output.txt
+

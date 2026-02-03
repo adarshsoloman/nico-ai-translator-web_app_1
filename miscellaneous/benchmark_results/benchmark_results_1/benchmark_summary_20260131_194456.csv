@@ -1,0 +1,5 @@
+Model,Direction,Sentences,Avg Time (ms),Throughput (s/s),GPU Mem (MB),RAM (GB),Load Time (s),BLEU,COMET
+INT8 Quantized,en→to→hi,3009,800.13,1.25,20973.0,51.83,21.53,27.5,0.7821
+INT8 Quantized,hi→to→en,3009,683.14,1.46,20973.0,51.83,21.53,35.91,0.8771
+INT4 Quantized,en→to→hi,3009,441.67,2.26,21559.0,55.67,18.63,27.19,0.777
+INT4 Quantized,hi→to→en,3009,375.75,2.66,21559.0,55.67,18.63,34.34,0.8737

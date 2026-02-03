@@ -1,9 +1,8 @@
 """
 Translation Engine Module
-Handles tokenization, inference, and decoding with NLLB-specific language codes
+Handles tokenization, inference, and decoding with NLLB-specific language codes using CTranslate2
 """
 
-import torch
 import time
 from app.core.config import (
     LANG_CODE_MAP,
@@ -11,7 +10,6 @@ from app.core.config import (
     DEFAULT_DECODING_PARAMS,
     MAX_INPUT_LENGTH_CHARS,
     MAX_INPUT_LENGTH_TOKENS,
-    DEVICE
 )
 import logging
 
@@ -19,13 +17,12 @@ logger = logging.getLogger(__name__)
 
 
 class TranslationEngine:
-    """Handles translation with NLLB models"""
+    """Handles translation with NLLB CT2 models"""
     
-    def __init__(self, model, tokenizer, adapter_manager, cache=None):
-        self.model = model
+    def __init__(self, translator, tokenizer, adapter_manager, cache=None):
+        self.translator = translator  # CT2 translator
         self.tokenizer = tokenizer
         self.adapter_manager = adapter_manager
-        self.device = DEVICE
         self.cache = cache  # Translation result cache
         
     def validate_input(self, text: str, source_lang: str, target_lang: str):
@@ -174,7 +171,7 @@ class TranslationEngine:
         # Determine translation direction
         direction = f"{source_lang}_{target_lang}"
         
-        # Switch adapter if needed
+        # Switch adapter if needed (this may not work with CT2 - experimental!)
         adapter_switch_time_ms = self.adapter_manager.switch_adapter(direction)
         
         # Get NLLB language codes
@@ -184,45 +181,45 @@ class TranslationEngine:
         # Set tokenizer source language
         self.tokenizer.src_lang = src_lang_code
         
-        # Tokenize input
-        inputs = self.tokenizer(
-            text,
-            return_tensors="pt",
-            padding=True,
-            truncation=True,
-            max_length=MAX_INPUT_LENGTH_TOKENS
-        ).to(self.device)
+        # Tokenize input - CT2 requires tokens, not IDs
+        # First encode to IDs, then convert to tokens
+        input_ids = self.tokenizer.encode(text, max_length=MAX_INPUT_LENGTH_TOKENS, truncation=True)
+        source_tokens = self.tokenizer.convert_ids_to_tokens(input_ids)
         
-        input_tokens = inputs['input_ids'].shape[1]
+        input_tokens = len(source_tokens)
         
-        # Prepare decoding parameters
+        # Prepare decoding parameters for CT2
         params = DEFAULT_DECODING_PARAMS.copy()
         if decoding_params:
             params.update(decoding_params)
         
-        # Get forced_bos_token_id for target language
-        forced_bos_token_id = self.tokenizer.convert_tokens_to_ids(tgt_lang_code)
+        # Map PyTorch params to CT2 params
+        ct2_params = {
+            "max_decoding_length": params.get("max_length", 512),
+            "beam_size": params.get("num_beams", 5),
+            "length_penalty": params.get("length_penalty", 1.0),
+            "repetition_penalty": params.get("repetition_penalty", 1.0),
+        }
         
-        # Get the current model (PEFT or base)
-        current_model = self.adapter_manager.get_model()
+        # Get the current translator (may be base or adapted - experimental!)
+        current_translator = self.adapter_manager.get_model()  # This returns translator now
         
-        # Generate translation
+        # Translate using CT2
         inference_start = time.time()
-        with torch.no_grad():
-            outputs = current_model.generate(
-                **inputs,
-                forced_bos_token_id=forced_bos_token_id,
-                **params
-            )
+        results = current_translator.translate_batch(
+            [source_tokens],
+            target_prefix=[[tgt_lang_code]],  # Target language prefix
+            **ct2_params
+        )
         inference_time_ms = (time.time() - inference_start) * 1000
         
-        output_tokens = outputs.shape[1]
+        # Extract result
+        target_tokens = results[0].hypotheses[0]
+        output_tokens = len(target_tokens)
         
-        # Decode output
-        translated_text = self.tokenizer.batch_decode(
-            outputs,
-            skip_special_tokens=True
-        )[0]
+        # Decode output - convert tokens back to IDs, then to text
+        target_ids = self.tokenizer.convert_tokens_to_ids(target_tokens)
+        translated_text = self.tokenizer.decode(target_ids, skip_special_tokens=True)
         
         # Calculate total time
         total_time_ms = (time.time() - start_time) * 1000

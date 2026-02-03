@@ -1,12 +1,12 @@
 """
 Adapter Manager Module
-Handles PEFT LoRA adapter loading and switching with thread safety
+Handles adapter management (temporarily disabled for CT2 integration)
 """
 
 import threading
 import time
-from peft import PeftModel
-from app.core.config import ADAPTER_PATHS, DEVICE
+# from peft import PeftModel  # DISABLED: CT2 doesn't support PEFT adapters
+from app.core.config import ADAPTER_PATHS
 import logging
 import os
 
@@ -14,17 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 class AdapterManager:
-    """Manages LoRA adapters with thread-safe switching"""
+    """Manages adapters - currently using base CT2 model only"""
     
-    def __init__(self, base_model, tokenizer):
-        self.base_model = base_model
+    def __init__(self, base_translator, tokenizer):
+        self.base_translator = base_translator  # CT2 translator
         self.tokenizer = tokenizer
-        self.device = DEVICE
         
         # Thread safety
         self.lock = threading.Lock()
         
-        # Adapter state
+        # Adapter state (disabled for now)
         self.peft_model = None
         self.active_adapter = None
         self.adapters_loaded = {}
@@ -34,43 +33,27 @@ class AdapterManager:
         
     def load_adapters(self):
         """
-        Load both LoRA adapters at startup
+        Load adapters
+        
+        NOTE: CT2 does not support dynamic adapter loading like PEFT.
+        For now, we'll use the base CT2 model only.
+        
+        TODO: Implement one of:
+        - Option 1: Merge adapters into separate CT2 models
+        - Option 2: Keep PEFT for adapter support (hybrid approach)
         
         Returns:
             bool: True if successful, False otherwise
         """
         try:
-            logger.info("Loading LoRA adapters...")
+            logger.warning("=" * 60)
+            logger.warning("ADAPTER LOADING DISABLED FOR CT2 INTEGRATION")
+            logger.warning("Using CT2 base model only (no domain-specific adapters)")
+            logger.warning("=" * 60)
             
-            # Check if adapter paths exist
-            for direction, path in ADAPTER_PATHS.items():
-                if not os.path.exists(path):
-                    logger.warning(f"Adapter path not found: {path}")
-                    logger.warning(f"Will use base model only for {direction}")
-                    return False
-            
-            # Load the first adapter (en_hi) as base
-            logger.info(f"Loading adapter: en_hi from {ADAPTER_PATHS['en_hi']}")
-            self.peft_model = PeftModel.from_pretrained(
-                self.base_model,
-                ADAPTER_PATHS['en_hi'],
-                adapter_name="en_hi"
-            )
-            self.adapters_loaded["en_hi"] = True
-            self.active_adapter = "en_hi"
-            logger.info("Adapter en_hi loaded successfully")
-            
-            # Load the second adapter (hi_en)
-            logger.info(f"Loading adapter: hi_en from {ADAPTER_PATHS['hi_en']}")
-            self.peft_model.load_adapter(
-                ADAPTER_PATHS['hi_en'],
-                adapter_name="hi_en"
-            )
-            self.adapters_loaded["hi_en"] = True
-            logger.info("Adapter hi_en loaded successfully")
-            
-            logger.info(f"All adapters loaded. Active adapter: {self.active_adapter}")
-            return True
+            # For now, just return False to indicate no adapters loaded
+            # The base translator will be used for all translations
+            return False
             
         except Exception as e:
             logger.error(f"Failed to load adapters: {str(e)}", exc_info=True)
@@ -80,58 +63,32 @@ class AdapterManager:
     
     def switch_adapter(self, direction: str):
         """
-        Switch to a different adapter
+        Switch to a different adapter (DISABLED for CT2)
         
         Args:
             direction: Translation direction ("en_hi" or "hi_en")
             
         Returns:
-            float: Switch time in milliseconds
+            float: Switch time in milliseconds (always 0.0 for CT2 base model)
         """
-        with self.lock:
-            start_time = time.time()
-            
-            try:
-                # If no adapters loaded, return immediately
-                if self.peft_model is None:
-                    logger.debug("No adapters loaded, using base model")
-                    return 0.0
-                
-                # If already on the correct adapter, no switch needed
-                if self.active_adapter == direction:
-                    logger.debug(f"Already using adapter: {direction}")
-                    return 0.0
-                
-                # Switch adapter
-                logger.debug(f"Switching adapter from {self.active_adapter} to {direction}")
-                self.peft_model.set_adapter(direction)
-                self.active_adapter = direction
-                
-                # Calculate switch time
-                switch_time_ms = (time.time() - start_time) * 1000
-                self.switch_times.append(switch_time_ms)
-                
-                logger.debug(f"Adapter switched to {direction} in {switch_time_ms:.2f}ms")
-                return switch_time_ms
-                
-            except Exception as e:
-                logger.error(f"Failed to switch adapter: {str(e)}", exc_info=True)
-                return 0.0
+        # No adapter switching needed - always use base translator
+        return 0.0
     
     def get_model(self):
         """
-        Get the current model (PEFT model if adapters loaded, else base model)
+        Get the current translator (CT2 base translator)
         
         Returns:
-            model: Current active model
+            translator: Current active CT2 translator
         """
-        return self.peft_model if self.peft_model is not None else self.base_model
+        return self.base_translator  # Always return base CT2 translator
     
     def get_adapter_info(self):
         """Get adapter information for health checks"""
         return {
-            "adapters_loaded": self.adapters_loaded,
-            "active_adapter": self.active_adapter,
-            "using_adapters": self.peft_model is not None,
-            "avg_switch_time_ms": sum(self.switch_times) / len(self.switch_times) if self.switch_times else 0,
+            "adapters_loaded": {},
+            "active_adapter": "base",
+            "using_adapters": False,
+            "avg_switch_time_ms": 0.0,
+            "note": "CT2 integration - adapters disabled, using base model only"
         }

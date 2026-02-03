@@ -1,0 +1,6 @@
+model,direction,avg_time_ms,throughput_sps,bleu_score,comet_score,load_time_s,gpu_memory_mb,ram_gb
+CT2-float16,en_to_hi,139.16,7.19,27.59,0.7816,3.69,2090.0,37.26
+CT2-float16,hi_to_en,120.91,8.27,35.97,0.877,3.69,2090.0,37.26
+CT2-int8_float16,en_to_hi,154.45,6.47,27.46,0.7818,5.51,1204.0,40.24
+CT2-int8_float16,hi_to_en,131.11,7.63,35.9,0.8771,5.51,1204.0,40.24
+

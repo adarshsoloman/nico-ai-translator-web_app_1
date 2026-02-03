@@ -1,0 +1,22 @@
+# Core dependencies for NLLB benchmarking (CTranslate2)
+# IMPORTANT: Use these exact versions for compatibility
+# See CT2_VERSION_NOTES.md for details
+torch==2.6.0
+torchvision==0.21.0
+transformers==4.46.0
+ctranslate2==4.5.0
+sentencepiece>=0.1.99
+
+# Utilities
+tqdm>=4.65.0
+psutil>=5.9.0
+gputil>=1.4.0
+pandas>=2.0.0
+
+# Analysis and visualization
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# Optional: Quality metrics
+sacrebleu>=2.3.0
+unbabel-comet>=2.0.0
