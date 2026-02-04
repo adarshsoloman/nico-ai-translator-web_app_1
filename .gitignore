@@ -65,3 +65,4 @@ nllb_ct2_int8/
 nllb_ct2_fp16/
 docs
 docs/
+nllb_ct2_int8_pytorch_backup/
