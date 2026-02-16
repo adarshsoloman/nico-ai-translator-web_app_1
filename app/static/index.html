@@ -1279,8 +1279,8 @@
                 const copyBtn = document.getElementById('copyBtn');
                 const originalHTML = copyBtn.innerHTML;
 
-                // Show success icon temporarily
-                copyBtn.innerHTML = '<span class="material-symbols-rounded text-lg">check_circle</span>';
+                // Show success icon temporarily (using emoji since icons load on DOMContentLoaded)
+                copyBtn.innerHTML = '<span class="material-symbols-rounded text-lg">✓</span>';
                 copyBtn.classList.add('text-green-600');
 
                 showToast('Copied to clipboard!', 'success');
