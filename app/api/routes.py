@@ -109,6 +109,93 @@ async def translate(request: TranslateRequest):
         raise HTTPException(status_code=500, detail=f"Translation failed: {str(e)}")
 
 
+@router.post("/translate/stream")
+async def translate_stream(request: Request):
+    """
+    Translate with word-by-word streaming
+    Provides ChatGPT-style progressive display
+    """
+    try:
+        # Parse request body
+        body = await request.json()
+        text = body.get("text", "")
+        source_lang = body.get("source_lang", "")
+        target_lang = body.get("target_lang", "")
+        decoding_params = body.get("decoding_params")
+        
+        # Validate
+        if not text or not text.strip():
+            raise HTTPException(status_code=400, detail="Text cannot be empty")
+        
+        if source_lang not in ["en", "hi"] or target_lang not in ["en", "hi"]:
+            raise HTTPException(status_code=400, detail="Invalid language codes")
+        
+        if source_lang == target_lang:
+            raise HTTPException(status_code=400, detail="Source and target languages must be different")
+        
+        if not translation_engine:
+            raise HTTPException(status_code=503, detail="Translation service not ready")
+        
+        # Create word streaming generator
+        async def stream_words():
+            try:
+                # Step 1: Complete translation first
+                result = translation_engine.translate(
+                    text=text,
+                    source_lang=source_lang,
+                    target_lang=target_lang,
+                    decoding_params=decoding_params
+                )
+                
+                translated_text = result["translated_text"]
+                
+                # Step 2: Split into words and stream
+                words = translated_text.split()
+                
+                for i, word in enumerate(words):
+                    yield {
+                        "event": "word",
+                        "data": json.dumps({
+                            "word": word,
+                            "index": i,
+                            "total": len(words)
+                        })
+                    }
+                    # 75ms delay for smooth streaming
+                    await asyncio.sleep(0.075)
+                
+                # Step 3: Send completion event
+                yield {
+                    "event": "complete",
+                    "data": json.dumps({
+                        "translated_text": translated_text,
+                        "source_lang": source_lang,
+                        "target_lang": target_lang,
+                        "metrics": result["metrics"]
+                    })
+                }
+                
+                # Record metrics
+                direction = f"{source_lang}_{target_lang}"
+                if metrics_collector:
+                    metrics_collector.record_translation(result["metrics"], direction)
+                    
+            except Exception as e:
+                logger.error(f"Streaming translation failed: {str(e)}", exc_info=True)
+                yield {
+                    "event": "error",
+                    "data": json.dumps({"error": str(e)})
+                }
+        
+        return EventSourceResponse(stream_words())
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Stream setup failed: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/translate/long")
 async def translate_long(request: Request):
     """

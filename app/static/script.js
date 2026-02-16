@@ -166,7 +166,7 @@ async function handleTranslate() {
     }
 }
 
-// Short translation (regular API call)
+// Short translation (streaming word-by-word)
 async function translateShort(text) {
     try {
         // Disable button
@@ -176,7 +176,10 @@ async function translateShort(text) {
         // Hide metrics
         metricsDisplay.style.display = 'none';
 
-        const response = await fetch(`${API_BASE_URL}/translate`, {
+        // Clear output
+        outputText.value = '';
+
+        const response = await fetch(`${API_BASE_URL}/translate/stream`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -193,14 +196,45 @@ async function translateShort(text) {
             throw new Error(error.detail || 'Translation failed');
         }
 
-        const data = await response.json();
+        // Process SSE stream
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let finalMetrics = null;
 
-        // Update output
-        outputText.value = data.translated_text;
-        updateCounters();
+        while (true) {
+            const { done, value } = await reader.read();
 
-        // Show metrics
-        displayMetrics(data.metrics);
+            if (done) break;
+
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // Keep incomplete line in buffer
+
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    const data = JSON.parse(line.slice(6));
+
+                    // Append word to output
+                    if (data.word !== undefined) {
+                        outputText.value += (outputText.value ? ' ' : '') + data.word;
+                        updateCounters();
+                    }
+
+                    // Store final metrics
+                    if (data.metrics) {
+                        finalMetrics = data.metrics;
+                    }
+                } else if (line.startsWith('event: complete')) {
+                    // Stream complete
+                }
+            }
+        }
+
+        // Show metrics if available
+        if (finalMetrics) {
+            displayMetrics(finalMetrics);
+        }
 
         showToast('Translation complete!', 'success');
 

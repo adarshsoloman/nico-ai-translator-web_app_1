@@ -27,262 +27,6 @@
         .material-symbols-rounded::before {
             content: attr(data-icon);
         }
-
-        /* Input type dropdown */
-        .input-type-dropdown {
-            position: relative;
-        }
-
-        .input-type-menu {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            min-width: 180px;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            padding: 0.5rem;
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-8px);
-            transition: all 0.2s ease;
-        }
-
-        .dark .input-type-menu {
-            background: #1e293b;
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .input-type-dropdown.open .input-type-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .input-type-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0.6rem 0.75rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #475569;
-            transition: all 0.15s ease;
-        }
-
-        .dark .input-type-option {
-            color: #94a3b8;
-        }
-
-        .input-type-option:hover {
-            background: #f1f5f9;
-            color: #334155;
-        }
-
-        .dark .input-type-option:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-        }
-
-        .input-type-option.selected {
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-
-        .dark .input-type-option.selected {
-            background: rgba(79, 70, 229, 0.2);
-            color: #818cf8;
-        }
-
-        .input-type-option .option-icon {
-            font-size: 1.25rem;
-            width: 24px;
-            text-align: center;
-        }
-
-        /* Language dropdown */
-        .lang-dropdown {
-            position: relative;
-        }
-
-        .lang-dropdown-menu {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            min-width: 200px;
-            max-height: 280px;
-            overflow-y: auto;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            padding: 0.5rem;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(-8px);
-            transition: all 0.2s ease;
-        }
-
-        .dark .lang-dropdown-menu {
-            background: #1e293b;
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .lang-dropdown.open .lang-dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .lang-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 0.5rem 0.75rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #475569;
-            transition: all 0.15s ease;
-        }
-
-        .dark .lang-option {
-            color: #94a3b8;
-        }
-
-        .lang-option:hover:not(.disabled) {
-            background: #f1f5f9;
-            color: #334155;
-        }
-
-        .dark .lang-option:hover:not(.disabled) {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-        }
-
-        .lang-option.selected {
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-
-        .dark .lang-option.selected {
-            background: rgba(79, 70, 229, 0.2);
-            color: #818cf8;
-        }
-
-        .lang-option.disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-            color: #94a3b8;
-        }
-
-        .dark .lang-option.disabled {
-            color: #64748b;
-        }
-
-        .lang-option.disabled::after {
-            content: " (Coming soon)";
-            font-size: 0.7rem;
-            font-weight: 400;
-            opacity: 0.8;
-        }
-
-        /* Custom Training dropdown - opens upward */
-        .training-dropdown {
-            position: relative;
-        }
-
-        .training-dropdown-menu {
-            position: absolute;
-            top: calc(100% + 8px);
-            left: 0;
-            min-width: 220px;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-            border: 1px solid rgba(0, 0, 0, 0.06);
-            padding: 0.5rem;
-            z-index: 9999;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(8px);
-            transition: all 0.2s ease;
-        }
-
-        .dark .training-dropdown-menu {
-            background: #1e293b;
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-        }
-
-        .training-dropdown.open .training-dropdown-menu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .training-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0.6rem 0.75rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #475569;
-            transition: all 0.15s ease;
-            text-decoration: none;
-        }
-
-        .dark .training-option {
-            color: #94a3b8;
-        }
-
-        .training-option:hover:not(.disabled) {
-            background: #f1f5f9;
-            color: #334155;
-        }
-
-        .dark .training-option:hover:not(.disabled) {
-            background: rgba(255, 255, 255, 0.08);
-            color: #e2e8f0;
-        }
-
-        .training-option.disabled {
-            cursor: not-allowed;
-            opacity: 0.5;
-            color: #94a3b8;
-        }
-
-        .dark .training-option.disabled {
-            color: #64748b;
-        }
-
-        .training-option.disabled::after {
-            content: " (Coming soon)";
-            font-size: 0.7rem;
-            font-weight: 400;
-            opacity: 0.8;
-        }
-
-        .training-dropdown-menu .dropdown-divider {
-            height: 1px;
-            background: #e2e8f0;
-            margin: 0.25rem 0;
-        }
-
-        .dark .training-dropdown-menu .dropdown-divider {
-            background: rgba(255, 255, 255, 0.1);
-        }
     </style>
     <script>
         // Replace Material Icons with Unicode symbols for offline mode
@@ -297,13 +41,7 @@
                 'backspace': '⌫',
                 'g_translate': '🔄',
                 'content_copy': '📄',
-                'check_circle': '✓',
-                'insert_drive_file': '📁',
-                'description': '📝',
-                'picture_as_pdf': '📕',
-                'article': '📘',
-                'image': '🏞️',
-                'add_circle': '➕',
+                'check_circle': '✓'
             };
 
             document.querySelectorAll('.material-symbols-rounded').forEach(icon => {
@@ -517,43 +255,16 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <!-- Custom Training Dropdown -->
-                <div class="training-dropdown relative" id="trainingDropdown">
-                    <button type="button" id="trainingDropdownTrigger"
-                        class="group relative px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2">
-                        <span class="material-symbols-rounded text-lg">model_training</span>
-                        <span>Custom Training</span>
-                        <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                        <div
-                            class="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 opacity-50 blur-md group-hover:opacity-75 transition-opacity -z-10">
-                        </div>
-                    </button>
-                    <div class="training-dropdown-menu" id="trainingDropdownMenu">
-                        <a href="/dataset-builder.html" target="_blank" class="training-option">
-                            <span class="material-symbols-rounded text-lg">add_circle</span>
-                            <span>Train on your dataset</span>
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <div class="training-option">
-                            <span>NLLB-200-Distilled-600M</span>
-                        </div>
-                        <div class="training-option">
-                            <span>NLLB-200-Distilled-1.3B</span>
-                        </div>
-                        <div class="training-option">
-                            <span>Flores-200-MT</span>
-                        </div>
-                        <div class="training-option">
-                            <span>mBART-50</span>
-                        </div>
-                        <div class="training-option">
-                            <span>mT5-Base</span>
-                        </div>
+                <!-- Custom Training Button -->
+                <a href="/dataset-builder.html" target="_blank"
+                    class="group relative px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold text-sm shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 hover:animate-none">
+                    <span class="material-symbols-rounded text-lg">model_training</span>
+                    <span>Custom Training</span>
+                    <!-- Glow effect -->
+                    <div
+                        class="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 opacity-50 blur-md group-hover:opacity-75 transition-opacity -z-10">
                     </div>
-                </div>
+                </a>
                 <div id="statusIndicator"
                     class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50/80 dark:bg-slate-500/10 border border-slate-100 dark:border-slate-500/20 shadow-sm">
                     <div class="w-2 h-2 rounded-full bg-slate-400"></div>
@@ -582,35 +293,21 @@
                     Secure, local neural translation for sensitive enterprise documents.
                 </p>
             </div>
-            <div class="flex items-center justify-center gap-4 mb-10 flex-wrap relative z-[100]">
+            <div class="flex items-center justify-center gap-4 mb-10">
                 <div
                     class="glass-panel p-1.5 rounded-full border border-white/60 dark:border-slate-700 shadow-sm flex items-center relative">
-                    <div class="lang-dropdown" id="sourceLangDropdown">
-                        <button type="button" id="sourceLangBtn"
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 bg-slate-900 dark:bg-primary text-white shadow-md">
-                            <span id="sourceLangLabel">English (US)</span>
-                            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="lang-dropdown-menu" id="sourceLangMenu"></div>
-                    </div>
+                    <button id="sourceLangBtn"
+                        class="px-6 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 bg-slate-900 dark:bg-primary text-white shadow-md">
+                        English (US)
+                    </button>
                     <button id="swapBtn"
                         class="w-10 h-10 flex items-center justify-center rounded-full text-slate-400 dark:text-slate-400 hover:text-primary dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 transition-all mx-1">
                         <span class="material-symbols-rounded text-xl">swap_horiz</span>
                     </button>
-                    <div class="lang-dropdown" id="targetLangDropdown">
-                        <button type="button" id="targetLangBtn"
-                            class="flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300">
-                            <span id="targetLangLabel">Hindi (India)</span>
-                            <svg class="w-4 h-4 opacity-80" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        </button>
-                        <div class="lang-dropdown-menu" id="targetLangMenu"></div>
-                    </div>
+                    <button id="targetLangBtn"
+                        class="px-6 py-2.5 rounded-full text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all duration-300">
+                        Hindi (India)
+                    </button>
                 </div>
             </div>
 
@@ -635,43 +332,9 @@
                     class="glass-panel rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg shadow-slate-200/20 dark:shadow-none overflow-hidden flex flex-col h-[380px] group transition-all duration-300 hover:shadow-xl hover:border-primary/20 dark:hover:border-primary/40 focus-within:ring-2 ring-primary/20">
                     <div
                         class="px-5 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-white/40 dark:bg-slate-800/30">
-                        <div class="flex items-center gap-3">
-                            <span
-                                class="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">Input
-                                Source</span>
-                            <div class="input-type-dropdown" id="inputTypeDropdown">
-                                <button type="button" id="inputTypeTrigger"
-                                    class="flex items-center gap-2 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/60 dark:bg-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium transition-colors"
-                                    title="Input type">
-                                    <span class="material-symbols-rounded text-lg">insert_drive_file</span>
-                                    <span id="inputTypeLabel">Text</span>
-                                    <svg class="w-4 h-4 transition-transform" id="inputTypeChevron" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M19 9l-7 7-7-7"></path>
-                                    </svg>
-                                </button>
-                                <div class="input-type-menu" id="inputTypeMenu">
-                                    <div class="input-type-option selected" data-type="text">
-                                        <span class="option-icon material-symbols-rounded">description</span>
-                                        <span>Text</span>
-                                    </div>
-                                    <div class="input-type-option" data-type="pdf">
-                                        <span class="option-icon material-symbols-rounded">picture_as_pdf</span>
-                                        <span>PDF</span>
-                                    </div>
-                                    <div class="input-type-option" data-type="word">
-                                        <span class="option-icon material-symbols-rounded">article</span>
-                                        <span>Word</span>
-                                    </div>
-                                    <div class="input-type-option" data-type="image">
-                                        <span class="option-icon material-symbols-rounded">image</span>
-                                        <span>Image</span>
-                                    </div>
-                                </div>
-                                <input type="file" id="fileInput" accept="" class="hidden" style="display: none;">
-                            </div>
-                        </div>
+                        <span
+                            class="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">Input
+                            Source</span>
                         <div class="flex items-center gap-2">
                             <button id="pasteBtn"
                                 class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-primary transition-colors"
@@ -842,27 +505,6 @@
         const autoTranslateToggle = document.getElementById('autoTranslateToggle');
         const autoTranslateStatus = document.getElementById('autoTranslateStatus');
 
-        // Language list: selectable (en, hi) + dummy/disabled
-        const LANGUAGES = [
-            { code: 'en', name: 'English (US)', selectable: true },
-            { code: 'hi', name: 'Hindi (India)', selectable: true },
-            { code: 'bn', name: 'Bengali', selectable: false },
-            { code: 'gu', name: 'Gujarati', selectable: false },
-            { code: 'ml', name: 'Malayalam', selectable: false },
-            { code: 'ta', name: 'Tamil', selectable: false },
-            { code: 'nic', name: 'Nicobari', selectable: false },
-            { code: 'kn', name: 'Kannada', selectable: false },
-            { code: 'te', name: 'Telugu', selectable: false },
-            { code: 'mr', name: 'Marathi', selectable: false },
-            { code: 'pa', name: 'Punjabi', selectable: false },
-            { code: 'or', name: 'Odia', selectable: false },
-            { code: 'as', name: 'Assamese', selectable: false },
-            { code: 'ur', name: 'Urdu', selectable: false },
-            { code: 'ks', name: 'Kashmiri', selectable: false },
-            { code: 'ne', name: 'Nepali', selectable: false },
-            { code: 'si', name: 'Sinhala', selectable: false },
-        ];
-
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             initDarkMode(); // Initialize dark mode first
@@ -870,147 +512,7 @@
             updateCounters();
             setupEventListeners();
             setupAutoTranslate();
-            setupInputTypeDropdown();
-            setupLanguageDropdowns();
-            setupTrainingDropdown();
         });
-
-        // Input type dropdown
-        let currentInputType = 'text';
-        const FILE_ACCEPT = {
-            pdf: 'application/pdf,.pdf',
-            word: 'application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.doc,.docx',
-            image: 'image/*,.png,.jpg,.jpeg,.gif,.webp'
-        };
-
-        function setupInputTypeDropdown() {
-            const dropdown = document.getElementById('inputTypeDropdown');
-            const trigger = document.getElementById('inputTypeTrigger');
-            const menu = document.getElementById('inputTypeMenu');
-            const label = document.getElementById('inputTypeLabel');
-            const options = menu.querySelectorAll('.input-type-option');
-            const fileInput = document.getElementById('fileInput');
-
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('open');
-            });
-
-            options.forEach(opt => {
-                opt.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const type = opt.dataset.type;
-                    currentInputType = type;
-                    label.textContent = opt.querySelector('span:last-child').textContent;
-                    options.forEach(o => o.classList.remove('selected'));
-                    opt.classList.add('selected');
-                    dropdown.classList.remove('open');
-
-                    if (type === 'pdf' || type === 'word' || type === 'image') {
-                        fileInput.accept = FILE_ACCEPT[type];
-                        fileInput.value = '';
-                        fileInput.click();
-                    }
-                });
-            });
-
-            fileInput.addEventListener('change', (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                    showToast(`Selected: ${file.name}`, 'info');
-                    // TODO: Extract text from file and populate inputText when backend supports it
-                }
-                e.target.value = '';
-            });
-
-            document.addEventListener('click', () => dropdown.classList.remove('open'));
-        }
-
-        // Language dropdowns
-        function setupLanguageDropdowns() {
-            const sourceDropdown = document.getElementById('sourceLangDropdown');
-            const targetDropdown = document.getElementById('targetLangDropdown');
-            const sourceBtn = document.getElementById('sourceLangBtn');
-            const targetBtn = document.getElementById('targetLangBtn');
-            const sourceLabel = document.getElementById('sourceLangLabel');
-            const targetLabel = document.getElementById('targetLangLabel');
-            const sourceMenu = document.getElementById('sourceLangMenu');
-            const targetMenu = document.getElementById('targetLangMenu');
-
-            function renderLangMenu(menuEl, currentLang, isSource) {
-                menuEl.innerHTML = LANGUAGES.map(lang => {
-                    const selected = lang.code === currentLang;
-                    const disabled = !lang.selectable;
-                    return `<div class="lang-option ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''}" data-code="${lang.code}" data-name="${lang.name}" data-selectable="${lang.selectable}">${lang.name}</div>`;
-                }).join('');
-            }
-
-            function openDropdown(dropdown, otherDropdown) {
-                otherDropdown.classList.remove('open');
-                dropdown.classList.toggle('open');
-            }
-
-            sourceMenu.innerHTML = '';
-            targetMenu.innerHTML = '';
-            renderLangMenu(sourceMenu, sourceLang, true);
-            renderLangMenu(targetMenu, targetLang, false);
-
-            sourceBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openDropdown(sourceDropdown, targetDropdown);
-            });
-            targetBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                openDropdown(targetDropdown, sourceDropdown);
-            });
-
-            sourceMenu.addEventListener('click', (e) => {
-                const opt = e.target.closest('.lang-option');
-                if (!opt || opt.classList.contains('disabled')) return;
-                const code = opt.dataset.code;
-                const name = opt.dataset.name;
-                sourceLang = code;
-                sourceLabel.textContent = name;
-                sourceMenu.querySelectorAll('.lang-option').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                sourceDropdown.classList.remove('open');
-            });
-
-            targetMenu.addEventListener('click', (e) => {
-                const opt = e.target.closest('.lang-option');
-                if (!opt || opt.classList.contains('disabled')) return;
-                const code = opt.dataset.code;
-                const name = opt.dataset.name;
-                targetLang = code;
-                targetLabel.textContent = name;
-                targetMenu.querySelectorAll('.lang-option').forEach(o => o.classList.remove('selected'));
-                opt.classList.add('selected');
-                targetDropdown.classList.remove('open');
-            });
-
-            document.addEventListener('click', () => {
-                sourceDropdown.classList.remove('open');
-                targetDropdown.classList.remove('open');
-            });
-        }
-
-        // Training dropdown
-        function setupTrainingDropdown() {
-            const dropdown = document.getElementById('trainingDropdown');
-            const trigger = document.getElementById('trainingDropdownTrigger');
-            const menu = document.getElementById('trainingDropdownMenu');
-
-            trigger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                dropdown.classList.toggle('open');
-            });
-
-            menu.querySelector('a.training-option')?.addEventListener('click', () => {
-                dropdown.classList.remove('open');
-            });
-
-            document.addEventListener('click', () => dropdown.classList.remove('open'));
-        }
 
         // Event Listeners
         function setupEventListeners() {
@@ -1063,18 +565,9 @@
         function swapLanguages() {
             [sourceLang, targetLang] = [targetLang, sourceLang];
 
-            const sourceLabel = document.getElementById('sourceLangLabel');
-            const targetLabel = document.getElementById('targetLangLabel');
-            const tempText = sourceLabel.textContent;
-            sourceLabel.textContent = targetLabel.textContent;
-            targetLabel.textContent = tempText;
-
-            document.querySelectorAll('#sourceLangMenu .lang-option').forEach(o => {
-                o.classList.toggle('selected', o.dataset.code === sourceLang);
-            });
-            document.querySelectorAll('#targetLangMenu .lang-option').forEach(o => {
-                o.classList.toggle('selected', o.dataset.code === targetLang);
-            });
+            const tempText = sourceLangBtn.textContent;
+            sourceLangBtn.textContent = targetLangBtn.textContent;
+            targetLangBtn.textContent = tempText;
 
             const tempInput = inputText.value;
             inputText.value = outputText.textContent;
@@ -1137,7 +630,7 @@
 
                     buffer += decoder.decode(value, { stream: true });
                     const lines = buffer.split('\n');
-                    buffer = lines.pop(); // Keep incomplete line in buffer
+                    buffer = lines.pop();
 
                     for (const line of lines) {
                         if (line.startsWith('data: ')) {
